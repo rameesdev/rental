@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rental Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        button {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .red {
+            color: red;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+
+        .history-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .history-container.active {
+            display: block;
+        }
+
+        .history-container h3 {
+            margin-bottom: 10px;
+        }
+
+        .history-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .history-list li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rental Management System</h1>
+        <div>
+            <label for="flats">Select Flat:</label>
+            <select id="flats" onchange="selectFlat()">
+                <option value="">-- Select a Flat --</option>
+            </select>
+            <button onclick="newMonth()">New Month</button>
+            <button onclick="addFlat()">Add Flat</button>
+            <button onclick="openAddPersonModal()">Add Person</button>
+            <button onclick="generateOldMonthCSV()">Generate Old Month CSV</button> <!-- New button -->
+        </div>
+        <table id="persons-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Mobile</th>
+                    <th>Rent</th>
+                    <th>Pending Payment</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table rows will be dynamically added here -->
+            </tbody>
+        </table>
+
+        <div id="history-section" class="history-container">
+            <span class="close" onclick="closeHistory()">×</span>
+            <h3>Payment History for <span id="person-name"></span></h3>
+            <ul id="payment-history" class="history-list">
+                <!-- Payment history items will be dynamically added here -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="person-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Add Person</h2>
+            <form id="person-form">
+                <label for="person-name">Name:</label>
+                <input type="text" id="person-name-input" required><br>
+                <label for="person-mobile">Mobile:</label>
+                <input type="text" id="person-mobile-input" required><br>
+                <label for="person-rent">Rent Amount:</label>
+                <input type="number" id="person-rent-input" step="1" required><br>
+                <button type="button" onclick="addPerson()">Add Person</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePaymentModal()">&times;</span>
+            <h2>Pay Rent</h2>
+            <form id="payment-form">
+                <label for="payment-amount">Amount:</label>
+                <input type="number" id="payment-amount" step="0.01" required><br>
+                <label for="payment-method">Payment Method:</label>
+                <select id="payment-method" required>
+                    <option value="Cash">Cash</option>
+                    <option value="Bank">Bank</option>
+                </select><br>
+                <div id="transaction-details" style="display: none;">
+                    <label for="transaction-id">Transaction ID:</label>
+                    <input type="text" id="transaction-id"><br>
+                </div>
+                <button type="button" onclick="makePayment()">Pay</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        let flats = {}; // Global object to hold flats data
+        let selectedFlat = null; // Variable to store currently selected flat
+        let currentPersonIndex = null; // Index of the currently selected person
+        
+
+        // Function to handle flat selection from dropdown
+        function addFlat() {
+    const flatName = prompt("Enter flat name:");
+
+    if (flatName) {
+        // Prepare the data to send to the server
+        const data = { name: flatName };
+
+        fetch('/api/flats', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to add flat: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(newFlat => {
+            if(newFlat.status =="error"){alert("Flat with this name already exist");return;}
+            // Assuming flats is your frontend data structure, update it
+            flats[newFlat.name] = []; // Assuming your flats object is structured like this
+            const flatSelect = document.getElementById('flats');
+            const option = document.createElement('option');
+            option.value = newFlat.name;
+            option.text = newFlat.name;
+            flatSelect.appendChild(option);
+            flatSelect.value = newFlat.name;
+            selectFlat(); // Optionally refresh the UI if needed
+            alert('Flat added successfully!');
+        })
+        .catch(error => {
+            console.error('Error adding flat:', error);
+            alert('Failed to add flat. Please try again.');
+        });
+    } else {
+        alert("Invalid flat name.");
+    }
+}
+
+        function selectFlat() {
+            const flatSelect = document.getElementById('flats');
+            selectedFlat = flatSelect.value;
+            displayFlatDetails();
+        }
+
+        // Function to fetch flats data from backend
+        async function fetchFlats() {
+            try {
+                const response = await fetch('/api/flats'); // Adjust URL as per your server setup
+                if (!response.ok) {
+                    throw new Error('Failed to fetch flats');
+                }
+                const fetchedFlats = await response.json();
+                // Assign fetched flats to the global flats object
+                fetchedFlats.forEach(flat => {
+                    flats[flat.name] = flat.persons;
+                });
+            } catch (error) {
+                console.error('Error fetching flats:', error.message);
+                // Handle error scenario (e.g., display error message to user)
+            }
+        }
+
+        // Function to populate flats dropdown with fetched data
+        function populateDropdown() {
+            const flatSelect = document.getElementById('flats');
+            Object.keys(flats).forEach(flatName => {
+                const option = document.createElement('option');
+                option.value = flatName;
+                option.text = flatName;
+                flatSelect.appendChild(option);
+            });
+        }
+
+      // Function to display details of persons in the selected flat
+function displayFlatDetails() {
+    const tableBody = document.getElementById('persons-table').getElementsByTagName('tbody')[0];
+    tableBody.innerHTML = '';
+
+    if (selectedFlat && flats[selectedFlat]) {
+        flats[selectedFlat].forEach((person, index) => {
+            const row = tableBody.insertRow();
+            row.insertCell(0).innerText = person.name;
+            row.insertCell(1).innerText = person.mobile;
+            row.insertCell(2).innerText = person.rent;
+            const pendingCell = row.insertCell(3);
+            pendingCell.innerText = person.pending.toFixed(2);
+            if (person.pending > 0) {
+                pendingCell.classList.add('red');
+            }
+            const actionsCell = row.insertCell(4);
+
+            const payButton = document.createElement('button');
+            payButton.innerText = 'Pay Rent';
+            payButton.onclick = () => openPaymentModal(index);
+            actionsCell.appendChild(payButton);
+
+            const historyButton = document.createElement('button');
+            historyButton.innerText = 'Payment History';
+            historyButton.onclick = () => showHistory(index);
+            actionsCell.appendChild(historyButton);
+
+            const deleteButton = document.createElement('button');
+            deleteButton.innerText = 'Delete Person';
+            // Capture person.id in the closure
+            deleteButton.onclick = (function(personId) {
+                return function() {
+                    deletePerson(personId);
+                };
+            })(person.id);
+            actionsCell.appendChild(deleteButton);
+        });
+    }
+}
+
+
+async function deletePerson(id) {
+    let result = await confirm("Are you sure you want to delete this person?");
+    
+    if (!result) return;
+    
+    try {
+        const response = await fetch(`/api/flats/${selectedFlat}/persons/${id}`, { method: "DELETE" });
+        
+        if (!response.ok) {
+            alert("Error deleting person");
+            return;
+        }
+
+        await fetchFlats();
+        displayFlatDetails();
+    } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred while deleting the person.");
+    }
+}
+
+
+        // Function to open modal for adding a new person
+        function openAddPersonModal() {
+            document.getElementById('person-modal').style.display = 'block';
+        }
+ let isSubmitted = false;
+        // Function to add a new person to the selected flat
+        async function addPerson() {
+            if(isSubmitted)return;
+            isSubmitted=true;
+            const name = document.getElementById('person-name-input').value;
+            const mobile = document.getElementById('person-mobile-input').value;
+            const rent = document.getElementById('person-rent-input').value;
+
+            if (!name || !mobile || !rent) {
+                alert("Please fill in all fields.");
+                return;
+            }
+          let personIdCounter = await fetch("/api/personId").then((res)=>res.json()).then(data=>data.lastPersonId+1)
+          console.log(personIdCounter)
+            const person = {
+                id: personIdCounter,
+                name: name,
+                mobile: mobile,
+                rent: parseFloat(rent),
+                pending:parseFloat(rent)
+            };
+
+            try {
+                const response = await fetch(`/api/flats/${selectedFlat}/persons`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(person)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to add person');
+                }
+
+                flats[selectedFlat].push(person);
+                closeModal();
+                displayFlatDetails();
+                isSubmitted=false
+            } catch (error) {
+                console.error('Error adding person:', error.message);
+                alert('Failed to add person. Please try again.');
+                isSubmitted=false
+            }
+        }
+
+        // Function to open modal for making payment
+        function openPaymentModal(personIndex) {
+            currentPersonIndex = personIndex;
+            document.getElementById('payment-modal').style.display = 'block';
+            document.getElementById('payment-method').oninput=(e)=>{
+                if(e.target.value=="Bank"){document.getElementById('transaction-details').style.display = 'block';}
+                if(e.target.value=="Cash"){document.getElementById('transaction-details').style.display = 'none';}
+            }
+        }
+
+        // Function to close the modal for adding person
+        function closeModal() {
+            document.getElementById('person-modal').style.display = 'none';
+            document.getElementById('person-form').reset();
+        }
+
+        // Function to close the modal for making payment
+        function closePaymentModal() {
+            document.getElementById('payment-modal').style.display = 'none';
+            document.getElementById('payment-form').reset();
+            currentPersonIndex = null;
+        }
+
+        // Function to make payment for rent
+        async function makePayment() {
+    const amount = parseFloat(document.getElementById('payment-amount').value);
+    const method = document.getElementById('payment-method').value;
+    const transactionId = document.getElementById('transaction-id').value;
+
+    if (!amount || !method) {
+        alert("Please fill in all fields.");
+        return;
+    }
+
+    const person = flats[selectedFlat][currentPersonIndex];
+    const currentPending = person.pending;
+
+    if (amount > currentPending) {
+        const confirmed = confirm("Warning: The payment amount is greater than the pending amount. This will result in a negative pending balance. Are you sure you want to proceed?");
+
+        if (!confirmed) {
+            return; // Cancel payment if not confirmed
+        }
+    }
+
+    const payment = {
+        amount: amount,
+        method: method,
+        transactionId: transactionId
+    };
+
+    try {
+        const response = await fetch(`/api/flats/${selectedFlat}/persons/${person.id}/payment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payment)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to make payment');
+        }
+
+        person.pending -= amount;
+        closePaymentModal();
+        closeHistory();
+        await fetchFlats();
+        displayFlatDetails();
+
+    } catch (error) {
+        console.error('Error making payment:', error.message);
+        alert('Failed to make payment. Please try again.');
+    }
+}
+
+
+        function showHistory(personIndex) {
+    const person = flats[selectedFlat][personIndex];
+    const historySection = document.getElementById('history-section');
+    const historyList = document.getElementById('payment-history');
+    historyList.innerHTML = '';
+    
+    // Reverse iterate over person's history to display latest payment first
+    for (let i = person.history.length - 1; i >= 0; i--) {
+        const payment = person.history[i];
+        const listItem = document.createElement('li');
+        
+        // Format payment date to dd/mm/yyyy
+        const paymentDate = new Date(payment.date);
+        const formattedDate = `${paymentDate.getDate()}/${paymentDate.getMonth() + 1}/${paymentDate.getFullYear()}`;
+        
+        let paymentDetails = `
+            <strong>Date:</strong> ${formattedDate}<br>
+            <strong>Amount:</strong> ${payment.amount.toFixed(2)}<br>
+            <strong>Method:</strong> ${payment.method}`;
+        
+        if (payment.method === 'Bank' && payment.transactionId) {
+            paymentDetails += `<br><strong>Transaction ID:</strong> ${payment.transactionId}`;
+        }
+        
+        listItem.innerHTML = paymentDetails;
+        historyList.appendChild(listItem);
+    }
+    
+    document.getElementById('person-name').innerText = person.name;
+    historySection.classList.add('active');
+    historySection.scrollIntoView({
+    behavior: 'smooth', // Smooth scroll behavior
+    block: 'start',     // Alignment within the container (start, center, end, nearest)
+    inline: 'start'     // Alignment within the container's inline axis (start, center, end, nearest)
+});
+}
+
+
+
+
+        // Function to close the payment history section
+        function closeHistory() {
+            const historySection = document.getElementById('history-section');
+            historySection.classList.remove('active');
+        }
+
+        // Function to handle starting a new month
+        async function newMonth() {
+    const confirmed = confirm("Are you sure you want to start a new month? This will update pending amounts for all persons in all flats.");
+
+    if (confirmed) {
+        try {
+            let csvContent = "";
+
+            // Header for CSV
+            csvContent += "Flat,Name,Mobile,Rent,Pending\n";
+
+            // Prepare data for JSON backup
+            const jsonData = {
+                date: new Date(),
+                flats: {}
+            };
+
+            // Iterate through all flats and their persons
+            Object.keys(flats).forEach(flatName => {
+                jsonData.flats[flatName] = flats[flatName].map(person => ({
+                    name: person.name,
+                    mobile: person.mobile,
+                    rent: person.rent,
+                    pending: person.pending.toFixed(2)
+                }));
+
+                // Append to CSV
+                flats[flatName].forEach(person => {
+                    csvContent += `${flatName},${person.name},${person.mobile},${person.rent},${person.pending.toFixed(2)}\n`;
+                });
+           
+                // Add rent to pending amount for each person
+                
+            });
+            try {
+        const response = await fetch('/api/new-month', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update pending amounts for new month');
+        }
+
+        // Reload flats data or update UI as needed
+        fetchFlats().then(() => {
+            
+            selectFlat(); // Select initial flat after fetching data
+        });
+    } catch (error) {
+        console.error('Error handling new month:', error.message);
+        alert('Failed to update pending amounts for new month. Please try again.');
+        return;
+    }
+            // Send both JSON data and CSV content to server
+            await sendToServer(jsonData, csvContent);
+
+            // After sending data and updating locally, update UI
+            displayFlatDetails();
+
+        } catch (error) {
+            console.error('Error sending data to server:', error.message);
+            alert('Failed to send data to server.');
+        }
+    }
+}
+
+async function sendToServer(jsonData, csvContent) {
+    try {
+        // Assume you have an API endpoint to send the data to
+        const response = await fetch('/api/backup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ jsonData, csvContent })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to send data to server: ${response.status}`);
+        }
+
+        console.log('Data successfully sent to server.');
+
+    } catch (error) {
+        console.error('Error sending data to server:', error.message);
+        alert('Failed to send data to server.');
+    }
+}
+
+
+       
+// Function to generate CSV for old month data across all flats
+async function generateOldMonthCSV() {
+    try {
+        let csvContent = "data:text/csv;charset=utf-8,";
+
+        // Header for CSV
+        csvContent += "Flat,Name,Mobile,Rent,Pending\n";
+
+        // Iterate through all flats and their persons
+        Object.keys(flats).forEach(flatName => {
+            flats[flatName].forEach(person => {
+                csvContent += `${flatName},${person.name},${person.mobile},${person.rent},${person.pending.toFixed(2)}\n`;
+            });
+        });
+
+        // Create download link and trigger download
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `old_month_data_${new Date().toLocaleDateString()}.csv`);
+        document.body.appendChild(link); // Required for Firefox
+        link.click();
+    } catch (error) {
+        console.error('Error generating CSV:', error.message);
+        alert('Failed to generate CSV.');
+    }
+}
+
+        // Initial fetch and populate dropdown
+        fetchFlats().then(() => {
+            populateDropdown();
+            selectFlat(); // Select initial flat after fetching data
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+    const inputs = document.querySelectorAll("#person-modal .modal-content input")
+
+    inputs.forEach((input, index) => {
+        input.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                const nextInput = inputs[index + 1];
+                if (nextInput) {
+                    nextInput.focus();
+                } else {
+                    // If it's the last input, focus on the submit button
+                    document.querySelector("button[onclick='addPerson()']").focus();
+                }
+            }
+        });
+    });
+});
+
+    </script>
+</body>
+</html>
