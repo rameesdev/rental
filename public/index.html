@@ -357,10 +357,10 @@ async function deletePerson(id) {
                 alert("Please fill in all fields.");
                 return;
             }
-          let personIdCounter = await fetch("/api/personId").then((res)=>res.json()).then(data=>data.lastPersonId+1)
-          console.log(personIdCounter)
+          
+         
             const person = {
-                id: personIdCounter,
+                
                 name: name,
                 mobile: mobile,
                 rent: parseFloat(rent),
@@ -379,8 +379,9 @@ async function deletePerson(id) {
                 if (!response.ok) {
                     throw new Error('Failed to add person');
                 }
-
-                flats[selectedFlat].push(person);
+                const newPerson=await response.json()
+                flats[selectedFlat].push(newPerson);
+               
                 closeModal();
                 displayFlatDetails();
                 isSubmitted=false

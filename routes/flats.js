@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { v4: uuidv4 } = require('uuid');
 const { Flat,Person } = require('../models/Flat.js');
 const LastPersonId = require('../models/LastPersonId');
 const {Backup}=require("../models/Backup.js")
@@ -36,8 +37,9 @@ router.get('/flats', async (req, res) => {
 // Route to add a person to a flat [x]
 router.post('/flats/:flatName/persons', async (req, res) => {
     try {
+        const id=uuidv4()
         const { flatName } = req.params;
-        const { id, name, mobile, rent } = req.body; // Assuming id is provided by the frontend
+        const { name, mobile, rent } = req.body; // Assuming id is provided by the frontend
 
         // Find flat by name
         const flat = await Flat.findOne({ name: flatName });
@@ -57,18 +59,18 @@ router.post('/flats/:flatName/persons', async (req, res) => {
         };
 
         // Push new person to flat's persons array
-        const LastPersonIdDoc=await LastPersonId.findOne();
-        console.log(LastPersonIdDoc)
-        console.log(id)
-        LastPersonIdDoc.lastPersonId=id;
-        LastPersonIdDoc.save();
+      //  const LastPersonIdDoc=await LastPersonId.findOne();
+      //  console.log(LastPersonIdDoc)
+      //  console.log(id)
+       // LastPersonIdDoc.lastPersonId=id;
+      //  LastPersonIdDoc.save();
         flat.persons.push(newPerson);
 
         // Save updated flat
         const updatedFlat = await flat.save();
 
         // Respond with updated flat object
-        res.status(201).json(updatedFlat);
+        res.status(201).json(newPerson);
     } catch (err) {
         res.status(500).json({ message: err.message });
         console.log(err.message)
@@ -113,7 +115,7 @@ router.delete('/flats/:flatName/persons/:personId', async (req, res) => {
        const remainingPersons=flat.persons.filter(value=>{if(value.id!=personId){return value}})
        flat.persons=remainingPersons;
        
-       flat.save();
+       await flat.save();
         res.json("success");
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -156,7 +158,7 @@ router.post('/flats/:flatName/persons/:personId/payment', async (req, res) => {
         }
 
         // Find person by custom ID
-        const person = flat.persons.find(p => p.id === parseInt(personId));
+        const person = flat.persons.find(p => p.id ===personId);
         if (!person) {
             return res.status(404).json({ message: 'Person not found' });
         }
