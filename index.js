@@ -26,6 +26,7 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open', () => console.log('Connected to MongoDB'));
 app.use(cookieParser())
 app.use(express.json()); // Middleware to parse JSON bodies
+app.get("/favicon.ico",(req,res)=>res.sendFile(__dirname+"/bsm.PNG"))
 app.use((req, res, next) => {
     
     
