@@ -7,7 +7,16 @@ const jwt = require("jsonwebtoken")
 path = require("path")
 require("dotenv").config()
 const MONGODB_URI = process.env.URI;
+const uploadsPath = path.join(__dirname, 'uploads');
 
+// Check if the 'uploads' folder exists
+if (!fs.existsSync(uploadsPath)) {
+    // Folder does not exist, create it
+    fs.mkdirSync(uploadsPath, { recursive: true });
+    console.log('Uploads folder created.');
+} else {
+    console.log('Uploads folder already exists.');
+}
 
 mongoose.connect(MONGODB_URI, {});
 
