@@ -4,7 +4,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const cookieParser = require("cookie-parser")
 const jwt = require("jsonwebtoken")
-path = require("path")
+const path = require("path")
+const fs = require("fs")
 require("dotenv").config()
 const MONGODB_URI = process.env.URI;
 const uploadsPath = path.join(__dirname, 'uploads');
