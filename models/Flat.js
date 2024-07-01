@@ -7,12 +7,31 @@ const personSchema = new Schema({
     mobile: String,
     rent: Number,
     pending: Number,
+    folderId:String,
+    passportFront:{
+        id:String,
+        webContentLink:String,
+        webViewLink:String
+    },
+    passportBack:{
+        id:String,
+        webContentLink:String,
+        webViewLink:String
+    },
+    qrid:{
+        id:String,
+        webContentLink:String,
+        webViewLink:String
+    },
+
+    
     history: [
         {
             date: { type: Date, default: Date.now },
             amount: Number,
             method: String,
             transactionId: String
+            ,by:String
         }
     ]
 });

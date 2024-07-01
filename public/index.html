@@ -114,6 +114,66 @@
         .history-list li {
             margin-bottom: 5px;
         }
+        .custom-modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* High value to ensure it sits on top */
+    top: 50%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Offset to truly center */
+    width: 80%; /* Full width */
+    max-height: 80%; /* Maximum height */
+    background-color: rgb(0, 0, 0); /* Fallback color */
+    background-color: rgba(0, 0, 0, 0.4); /* Black with opacity */
+    overflow: auto; /* Enable scrolling if content overflows */
+}
+
+.custom-modal-content {
+    background-color: #fefefe;
+    padding: 20px;
+    border: 1px solid #888;
+    max-height: 100%; /* Full height of the modal */
+    overflow-y: auto; /* Vertical scrolling if content overflows */
+}
+
+.custom-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.custom-close:hover,
+.custom-close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.custom-document-entry {
+    margin-bottom: 15px;
+}
+
+.custom-document-img {
+    display: block;
+    max-width: 100px; /* Adjust as needed */
+    margin-bottom: 5px;
+}
+
+.custom-download-link {
+    display: block;
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.custom-not-uploaded {
+    color: red;
+    font-style: italic;
+}
+
+
+
     </style>
 </head>
 <body>
@@ -127,7 +187,7 @@
             <button onclick="newMonth()">New Month</button>
             <button onclick="addFlat()">Add Flat</button>
             <button onclick="openAddPersonModal()">Add Person</button>
-            <button onclick="generateOldMonthCSV()">Generate Old Month CSV</button> <!-- New button -->
+            <button onclick="generateOldMonthCSV()">Generate Current Excel Sheet</button> <!-- New button -->
         </div>
         <table id="persons-table">
             <thead>
@@ -165,10 +225,44 @@
                 <input type="text" id="person-mobile-input" required><br>
                 <label for="person-rent">Rent Amount:</label>
                 <input type="number" id="person-rent-input" step="1" required><br>
+                <label for="passport-front">Passport Front:</label>
+                <input type="file" id="passport-front-input" accept="image/*,.heic" ><br>
+                <label for="passport-back">Passport Back:</label>
+                <input type="file" id="passport-back-input" accept="image/*,.heic" ><br>
+                <label for="qrid">Qatar ID:</label>
+                <input type="file" id="qrid-input" accept="image/*,.heic" ><br>
                 <button type="button" onclick="addPerson()">Add Person</button>
             </form>
         </div>
     </div>
+    
+  <!-- Edit Person Modal -->
+<div id="edit-person-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditPersonModal()">&times;</span>
+        <h2>Edit Person</h2>
+        <form id="edit-person-form">
+            <label for="edit-person-name">Name:</label>
+            <input type="text" id="edit-person-name-input" required><br>
+            <label for="edit-person-mobile">Mobile:</label>
+            <input type="text" id="edit-person-mobile-input" required><br>
+            <label for="edit-person-rent">Rent Amount:</label>
+            <input type="number" id="edit-person-rent-input" step="0.01" required><br>
+            <button type="button" onclick="editPerson()">Save Changes</button>
+        </form>
+    </div>
+</div>
+<div id="view-documents-modal" class="custom-modal">
+    <div class="custom-modal-content">
+        <span class="custom-close" onclick="closeViewDocumentsModal()">&times;</span>
+        <h2>View Documents</h2>
+        <div id="custom-documents-list">
+            <!-- Documents will be dynamically added here -->
+        </div>
+        <button type="button" onclick="closeViewDocumentsModal()">Close</button>
+    </div>
+</div>
+
 
     <div id="payment-modal" class="modal">
         <div class="modal-content">
@@ -313,8 +407,77 @@ function displayFlatDetails() {
                 };
             })(person.id);
             actionsCell.appendChild(deleteButton);
+            const editButton = document.createElement("button")
+            editButton.innerText = "Edit"
+            editButton.onclick =(function(id,ind) {
+                return function() {
+                    openEditPersonModal(ind)
+
+                };
+            })(person.id,index);
+            actionsCell.appendChild(editButton);
+            const documents = document.createElement("button")
+            documents.innerText = "Documents";
+            documents.onclick=(function(person) {
+                return function() {
+                    
+                    openViewDocumentsModal((person.passportFront?.id)?`/api/documents/${person.passportFront.id}`:undefined, (person.passportBack?.id)?`/api/documents/${person.passportBack.id}`:undefined,(person.qrid?.id)?`/api/documents/${person.qrid.id}`:undefined);
+                };
+            })(person);
+            actionsCell.appendChild(documents)
         });
     }
+}
+function openViewDocumentsModal(passportFront, passportBack, qatarId) {
+    const documentsList = document.getElementById('custom-documents-list');
+    documentsList.innerHTML = ''; // Clear previous content
+
+    // Function to create document entry
+    function createDocumentEntry(label, fileUrl) {
+        const container = document.createElement('div');
+        container.classList.add('custom-document-entry');
+
+        if (fileUrl) {
+            const img = document.createElement('img');
+            img.src = fileUrl;
+            img.alt = label;
+            img.classList.add('custom-document-img');
+
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.download = label;
+            link.textContent = `Download ${label}`;
+            link.classList.add('custom-download-link');
+
+            container.appendChild(img);
+            container.appendChild(link);
+        } else {
+            const notUploadedText = document.createElement('p');
+            notUploadedText.textContent = `${label} not uploaded`;
+            notUploadedText.classList.add('custom-not-uploaded');
+            container.appendChild(notUploadedText);
+        }
+
+        return container;
+    }
+
+    // Add passport front
+    documentsList.appendChild(createDocumentEntry('Passport Front', passportFront));
+
+    // Add passport back
+    documentsList.appendChild(createDocumentEntry('Passport Back', passportBack));
+
+    // Add Qatar ID
+    documentsList.appendChild(createDocumentEntry('Qatar ID', qatarId));
+
+    // Show the modal
+    const modal = document.getElementById('view-documents-modal');
+    modal.style.display = 'block';
+}
+
+function closeViewDocumentsModal() {
+    const modal = document.getElementById('view-documents-modal');
+    modal.style.display = 'none';
 }
 
 
@@ -344,53 +507,63 @@ async function deletePerson(id) {
         function openAddPersonModal() {
             document.getElementById('person-modal').style.display = 'block';
         }
- let isSubmitted = false;
-        // Function to add a new person to the selected flat
-        async function addPerson() {
-            if(isSubmitted)return;
-            isSubmitted=true;
-            const name = document.getElementById('person-name-input').value;
-            const mobile = document.getElementById('person-mobile-input').value;
-            const rent = document.getElementById('person-rent-input').value;
+        let isSubmitted = false;
 
-            if (!name || !mobile || !rent) {
-                alert("Please fill in all fields.");
-                return;
-            }
-          
-         
-            const person = {
-                
-                name: name,
-                mobile: mobile,
-                rent: parseFloat(rent),
-                pending:parseFloat(rent)
-            };
+async function addPerson() {
+    if (isSubmitted) return;
+    isSubmitted = true;
 
-            try {
-                const response = await fetch(`/api/flats/${selectedFlat}/persons`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(person)
-                });
+    const name = document.getElementById('person-name-input').value;
+    const mobile = document.getElementById('person-mobile-input').value;
+    const rent = document.getElementById('person-rent-input').value;
+    const passportFront = document.getElementById('passport-front-input').files[0];
+    const passportBack = document.getElementById('passport-back-input').files[0];
+    const qrid = document.getElementById('qrid-input').files[0];
 
-                if (!response.ok) {
-                    throw new Error('Failed to add person');
-                }
-                const newPerson=await response.json()
-                flats[selectedFlat].push(newPerson);
-               
-                closeModal();
-                displayFlatDetails();
-                isSubmitted=false
-            } catch (error) {
-                console.error('Error adding person:', error.message);
-                alert('Failed to add person. Please try again.');
-                isSubmitted=false
-            }
+    if (!name || !mobile || !rent ) {
+        alert("Please fill in all fields and select the necessary files.");
+        isSubmitted = false;
+        return;
+    }
+
+    if (!selectedFlat) {
+        alert("Select a flat");
+        isSubmitted = false;
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('mobile', mobile);
+    formData.append('rent', parseFloat(rent));
+    formData.append('pending', parseFloat(rent));
+    formData.append('passportFront', passportFront);
+    formData.append('passportBack', passportBack);
+    formData.append('qrid', qrid);
+
+    try {
+        const response = await fetch(`/api/flats/${selectedFlat}/persons`, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to add person');
         }
+
+        const newPerson = await response.json();
+
+        flats[selectedFlat].push(newPerson);
+
+        closeModal();
+        displayFlatDetails();
+        isSubmitted = false;
+    } catch (error) {
+        console.error('Error adding person:', error.message);
+        alert('Failed to add person. Please try again.');
+        isSubmitted = false;
+    }
+}
 
         // Function to open modal for making payment
         function openPaymentModal(personIndex) {
@@ -487,7 +660,9 @@ async function deletePerson(id) {
         let paymentDetails = `
             <strong>Date:</strong> ${formattedDate}<br>
             <strong>Amount:</strong> ${payment.amount.toFixed(2)}<br>
-            <strong>Method:</strong> ${payment.method}`;
+            <strong>Method:</strong> ${payment.method}
+            <br><strong>By:</strong> ${payment.by}
+            <br><br>`;
         
         if (payment.method === 'Bank' && payment.transactionId) {
             paymentDetails += `<br><strong>Transaction ID:</strong> ${payment.transactionId}`;
@@ -661,7 +836,67 @@ async function generateOldMonthCSV() {
         });
     });
 });
+let currentEditPersonIndex = null; // Store the index of the person being edited
 
+// Function to open modal for editing a person
+function openEditPersonModal(personIndex) {
+    currentEditPersonIndex = personIndex;
+    const person = flats[selectedFlat][personIndex];
+
+    // Populate the form with the person's current details
+    document.getElementById('edit-person-name-input').value = person.name;
+    document.getElementById('edit-person-mobile-input').value = person.mobile;
+    document.getElementById('edit-person-rent-input').value = person.rent;
+
+    document.getElementById('edit-person-modal').style.display = 'block';
+}
+
+// Function to close the modal for editing person
+function closeEditPersonModal() {
+    document.getElementById('edit-person-modal').style.display = 'none';
+    document.getElementById('edit-person-form').reset();
+    currentEditPersonIndex = null;
+}
+async function editPerson() {
+    const name = document.getElementById('edit-person-name-input').value;
+    const mobile = document.getElementById('edit-person-mobile-input').value;
+    const rent = parseFloat(document.getElementById('edit-person-rent-input').value);
+
+    if (!name || !mobile || !rent) {
+        alert("Please fill in all fields.");
+        return;
+    }
+
+    const person = {
+        id: flats[selectedFlat][currentEditPersonIndex].id,
+        name: name,
+        mobile: mobile,
+        rent: rent,
+        pending: flats[selectedFlat][currentEditPersonIndex].pending // Keep the current pending amount
+    };
+
+    try {
+        const response = await fetch(`/api/flats/${selectedFlat}/persons/${person.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(person)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update person');
+        }
+
+        // Update the person in the local data
+        flats[selectedFlat][currentEditPersonIndex] = person;
+        closeEditPersonModal();
+        displayFlatDetails();
+    } catch (error) {
+        console.error('Error updating person:', error.message);
+        alert('Failed to update person. Please try again.');
+    }
+}
     </script>
 </body>
 </html>

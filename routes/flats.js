@@ -4,6 +4,10 @@ const { v4: uuidv4 } = require('uuid');
 const { Flat,Person } = require('../models/Flat.js');
 const LastPersonId = require('../models/LastPersonId');
 const {Backup}=require("../models/Backup.js")
+const jwt = require("jsonwebtoken")
+const {createFolder,uploadFile,getFile} = require("../utils/googleDrive.js")
+const multer = require('multer');
+const upload = multer({ dest: './uploads/' })
 // Create a new flat [x]
 router.post('/flats', async (req, res) => {
     try {
@@ -35,13 +39,38 @@ router.get('/flats', async (req, res) => {
 
 
 // Route to add a person to a flat [x]
-router.post('/flats/:flatName/persons', async (req, res) => {
+const cpUpload = upload.fields([{ name: 'passportFront', maxCount: 1 }, { name: 'passportBack', maxCount: 1 },{name:'qrid',maxCount:1}])
+
+router.post('/flats/:flatName/persons',cpUpload, async (req, res) => {
     try {
         const id=uuidv4()
         const { flatName } = req.params;
         const { name, mobile, rent } = req.body; // Assuming id is provided by the frontend
-
+       
         // Find flat by name
+        //passport
+        //qrid 
+        const files = req.files;
+        let folderData,passportFront,passportBack,qrid;
+        
+       
+        
+        try{
+           
+        folderData=await createFolder(name,"1LlADbdd8NzANTgi39p5Hnc6XIASyKjxy")
+        console.log(folderData)
+         if(files.passportFront)passportFront = await uploadFile("./"+files.passportFront[0].path,folderData.id,"passportFront",files.passportFront[0].mimetype)
+         if(files.passportBack)passportBack = await uploadFile("./"+files.passportBack[0].path,folderData.id,"passportBack",files.passportBack[0].mimetype)
+        if(files.qrid)qrid= await uploadFile("./"+files.qrid[0].path,folderData.id,"qrid",files.passportFront[0].mimetype)
+        console.log({passportFront,passportBack,qrid})
+
+        }catch(err){
+            res.status(500).json({ message: err.message });
+            console.log(err.message);
+            return;
+            
+        }
+    
         const flat = await Flat.findOne({ name: flatName });
         if (!flat) {
             return res.status(404).json({ message: 'Flat not found' });
@@ -55,15 +84,13 @@ router.post('/flats/:flatName/persons', async (req, res) => {
             mobile,
             rent: parseFloat(rent),
             pending: parseFloat(rent),
-            history: []
+            history: [],
+            folderId:folderData.id,
+            passportBack,
+            passportFront,qrid
         };
 
-        // Push new person to flat's persons array
-      //  const LastPersonIdDoc=await LastPersonId.findOne();
-      //  console.log(LastPersonIdDoc)
-      //  console.log(id)
-       // LastPersonIdDoc.lastPersonId=id;
-      //  LastPersonIdDoc.save();
+      
         flat.persons.push(newPerson);
 
         // Save updated flat
@@ -83,11 +110,13 @@ router.put('/flats/:flatId/persons/:personId', async (req, res) => {
     try {
         const { flatId, personId } = req.params;
         const { name, mobile, rent } = req.body;
-        const flat = await Flat.findById(flatId);
+        const flat = await Flat.findOne({name:flatId});
         if (!flat) {
             return res.status(404).json({ message: 'Flat not found' });
         }
-        const person = flat.persons.id(personId);
+        let person = flat.persons.filter((value)=>{if(value.id===personId)return value;})
+        person = person[0]
+        console.log(person)
         if (!person) {
             return res.status(404).json({ message: 'Person not found' });
         }
@@ -97,6 +126,7 @@ router.put('/flats/:flatId/persons/:personId', async (req, res) => {
         const updatedFlat = await flat.save();
         res.json(updatedFlat);
     } catch (err) {
+        console.log(err.message)
         res.status(500).json({ message: err.message });
     }
 });
@@ -126,23 +156,7 @@ router.delete('/flats/:flatName/persons/:personId', async (req, res) => {
 
 
 // Route to fetch and increment person ID
-router.get('/personId', async (req, res) => {
-    try {
-        // Try to find the current lastPersonId document
-        let lastPersonIdDoc = await LastPersonId.findOne();
 
-        // If no document exists, create a new one with default ID
-        if (!lastPersonIdDoc) {
-            const newLastPersonIdDoc = new LastPersonId({ lastPersonId: 0 });
-            lastPersonIdDoc = await newLastPersonIdDoc.save();
-        }
-
-        // Respond with the fetched or newly created lastPersonId
-        res.json({ lastPersonId: lastPersonIdDoc.lastPersonId });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
 
 // Make a payment for a person in a flat
 
@@ -169,7 +183,8 @@ router.post('/flats/:flatName/persons/:personId/payment', async (req, res) => {
             date: new Date(),
             amount,
             method,
-            transactionId
+            transactionId,
+            by:req.session.username
         });
 
         // Save updated flat
@@ -226,4 +241,53 @@ router.put('/new-month', async (req, res) => {
         res.status(500).json({ error: 'Failed to update pending amounts for new month' });
     }
 });
+router.post("/login", (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        // Check for missing credentials
+        if (!username || !password) {
+            res.status(400).json({ status: "error", message: "Invalid credentials" });
+            return; // Ensure no further code is executed
+        }
+
+        const validUsernames = process.env.USERNAMES.split(",");
+        
+        // Check if username exists
+        if (!validUsernames.includes(username)) {
+            res.status(400).json({ status: "error", message: "User not found" });
+            return; // Ensure no further code is executed
+        }
+
+        // Check password
+        if (password !== process.env.PASSWORD) {
+            res.status(400).json({ status: "error", message: "Wrong password" });
+            return; // Ensure no further code is executed
+        }
+
+        // Generate JWT token
+        const token = jwt.sign({ username }, process.env.SECRET, { expiresIn: "14d" });
+
+        // Set cookie with JWT token
+        res.cookie('token', token, {
+            maxAge: 1209600000, // 14 days in milliseconds
+            httpOnly: true,
+            //secure: true, // Set to true if using HTTPS
+            sameSite: 'strict'
+        });
+
+        // Send success response
+        res.status(200).json({ status: "success", message: "Login successful" });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ status: "error", message: "Server error, please try again later" });
+    }
+});
+router.get("/documents/:id",async(req,res)=>{
+    const {id}=req.params;
+    const data=Buffer.from(await getFile(id))
+    
+    if(data){res.write(data);res.end();return}
+
+})
 module.exports = router;
