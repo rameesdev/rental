@@ -232,7 +232,8 @@
                 <input type="file" id="passport-back-input" accept="image/*,.heic" ><br>
                 <label for="qrid">Qatar ID:</label>
                 <input type="file" id="qrid-input" accept="image/*,.heic" ><br>
-                <button type="button" onclick="addPerson()">Add Person</button>
+                <button id="addPersonButton" type="button" onclick="addPerson()">Add Person</button>
+                <label id="uploadProgress" style="display: none;">Uploading Files....,Please Wait</label>
             </form>
         </div>
     </div>
@@ -541,7 +542,7 @@ async function addPerson() {
     formData.append('passportFront', passportFront);
     formData.append('passportBack', passportBack);
     formData.append('qrid', qrid);
-
+    document.getElementById("uploadProgress").style.display="block"
     try {
         const response = await fetch(`/api/flats/${selectedFlat}/persons`, {
             method: 'POST',
@@ -564,6 +565,7 @@ async function addPerson() {
         alert('Failed to add person. Please try again.');
         isSubmitted = false;
     }
+    document.getElementById("uploadProgress").style.display="none"
 }
 
         // Function to open modal for making payment

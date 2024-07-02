@@ -29,7 +29,9 @@ router.post('/flats', async (req, res) => {
 router.get('/flats', async (req, res) => {
     try {
         const flats = await Flat.find();
+        flats.username = req.session.username
         res.json(flats);
+
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
