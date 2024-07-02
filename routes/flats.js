@@ -294,4 +294,8 @@ router.get("/documents/:id",async(req,res)=>{
     if(data){res.write(data);res.end();return}
 
 })
+router.get('/logout', (req, res) => {
+    res.clearCookie('token');
+    res.send('Logged out and cookie cleared');
+});
 module.exports = router;

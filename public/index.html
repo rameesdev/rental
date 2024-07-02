@@ -172,12 +172,38 @@
     color: red;
     font-style: italic;
 }
+.header {
+    width: 100%;
+    padding: 10px;
+    background-color: #f1f1f1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
+.logout-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background-color: #4a4a4a; /* Dark grey */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.logout-button:hover {
+    background-color: #2f2f2f; /* Darker grey */
+}
 
 
     </style>
 </head>
 <body>
+    <div class="header">
+        <button class="logout-button" onclick="logout()">Logout</button>
+    </div>
     <div class="container">
         <h1>Rental Management System</h1>
         <div>
@@ -296,7 +322,9 @@
         let selectedFlat = null; // Variable to store currently selected flat
         let currentPersonIndex = null; // Index of the currently selected person
         
-
+    function logout(){
+        fetch("/api/logout").then(()=>{location.reload()})
+    }
         // Function to handle flat selection from dropdown
         function addFlat() {
     const flatName = prompt("Enter flat name:");
