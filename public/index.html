@@ -249,7 +249,9 @@
             <label for="edit-person-mobile">Mobile:</label>
             <input type="text" id="edit-person-mobile-input" required><br>
             <label for="edit-person-rent">Rent Amount:</label>
-            <input type="number" id="edit-person-rent-input" step="0.01" required><br>
+            <input type="number" id="edit-person-rent-input" step="1" required><br>
+            <label for="edit-person-pending">Pending Amount:</label>
+            <input type="number" id="edit-person-pending-input" step="1" required><br>
             <button type="button" onclick="editPerson()">Save Changes</button>
         </form>
     </div>
@@ -289,6 +291,7 @@
 
     <!-- JavaScript -->
     <script>
+        let user = "";
         let flats = {}; // Global object to hold flats data
         let selectedFlat = null; // Variable to store currently selected flat
         let currentPersonIndex = null; // Index of the currently selected person
@@ -350,7 +353,9 @@
                 if (!response.ok) {
                     throw new Error('Failed to fetch flats');
                 }
-                const fetchedFlats = await response.json();
+                const responseData = (await response.json())
+                const fetchedFlats= responseData.flats;
+                user = responseData.username;
                 // Assign fetched flats to the global flats object
                 fetchedFlats.forEach(flat => {
                     flats[flat.name] = flat.persons;
@@ -417,7 +422,7 @@ function displayFlatDetails() {
 
                 };
             })(person.id,index);
-            actionsCell.appendChild(editButton);
+            if(user=="B")actionsCell.appendChild(editButton);
             const documents = document.createElement("button")
             documents.innerText = "Documents";
             documents.onclick=(function(person) {
@@ -850,7 +855,7 @@ function openEditPersonModal(personIndex) {
     document.getElementById('edit-person-name-input').value = person.name;
     document.getElementById('edit-person-mobile-input').value = person.mobile;
     document.getElementById('edit-person-rent-input').value = person.rent;
-
+     document.getElementById('edit-person-pending-input').value=person.pending;
     document.getElementById('edit-person-modal').style.display = 'block';
 }
 
@@ -864,8 +869,8 @@ async function editPerson() {
     const name = document.getElementById('edit-person-name-input').value;
     const mobile = document.getElementById('edit-person-mobile-input').value;
     const rent = parseFloat(document.getElementById('edit-person-rent-input').value);
-
-    if (!name || !mobile || !rent) {
+    const pending = parseFloat(document.getElementById('edit-person-pending-input').value)
+    if (!name || !mobile || !rent ||!pending) {
         alert("Please fill in all fields.");
         return;
     }
@@ -875,7 +880,7 @@ async function editPerson() {
         name: name,
         mobile: mobile,
         rent: rent,
-        pending: flats[selectedFlat][currentEditPersonIndex].pending // Keep the current pending amount
+        pending // Keep the current pending amount
     };
 
     try {

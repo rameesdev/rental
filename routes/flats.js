@@ -29,8 +29,9 @@ router.post('/flats', async (req, res) => {
 router.get('/flats', async (req, res) => {
     try {
         const flats = await Flat.find();
-        flats.username = req.session.username
-        res.json(flats);
+        
+        console.log(flats)
+        res.json({flats,username:req.session.username});
 
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -111,7 +112,7 @@ router.post('/flats/:flatName/persons',cpUpload, async (req, res) => {
 router.put('/flats/:flatId/persons/:personId', async (req, res) => {
     try {
         const { flatId, personId } = req.params;
-        const { name, mobile, rent } = req.body;
+        const { name, mobile, rent ,pending} = req.body;
         const flat = await Flat.findOne({name:flatId});
         if (!flat) {
             return res.status(404).json({ message: 'Flat not found' });
@@ -125,6 +126,7 @@ router.put('/flats/:flatId/persons/:personId', async (req, res) => {
         person.name = name;
         person.mobile = mobile;
         person.rent = rent;
+        person.pending = pending;
         const updatedFlat = await flat.save();
         res.json(updatedFlat);
     } catch (err) {
