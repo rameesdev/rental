@@ -82,12 +82,12 @@ router.post('/flats/:flatName/persons', cpUpload, async (req, res) => {
 
             if (files.passportFront) passportFront = await uploadFile("./" + files.passportFront[0].path, folderData.id, "passportFront", files.passportFront[0].mimetype)
             if (files.passportBack) passportBack = await uploadFile("./" + files.passportBack[0].path, folderData.id, "passportBack", files.passportBack[0].mimetype)
-            if (files.qrid) qrid = await uploadFile("./" + files.qrid[0].path, folderData.id, "qrid", files.passportFront[0].mimetype)
-
+            if (files.qrid) qrid = await uploadFile("./" + files.qrid[0].path, folderData.id, "qrid", files.qrid[0].mimetype)
+               
 
         } catch (err) {
             res.status(500).json({ message: err.message });
-            console.log(err.message);
+            console.log(err);
             return;
 
         }
