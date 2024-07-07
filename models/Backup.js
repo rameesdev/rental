@@ -8,5 +8,26 @@ const backupSchema = new Schema({
 });
 
 const Backup = mongoose.model('Backup', backupSchema);
-
-module.exports = { Backup };
+const monthSchema = new mongoose.Schema({
+    month: {
+      type: String,
+      required: true,
+      validate: {
+        validator: function(v) {
+          // Validate that month is in the format mm/yyyy
+          return /^(0[1-9]|1[0-2])\/\d{4}$/.test(v);
+        },
+        message: props => `${props.value} is not a valid month format. Use mm/yyyy.`
+      }
+    },
+    data: {
+      type: [mongoose.Schema.Types.Mixed], // Allows array of mixed types
+      default: []
+    },
+    date:{type:Date,default:Date.now}
+  });
+  
+  const Month = mongoose.model('Month', monthSchema);
+  
+ 
+module.exports = { Backup,Month };

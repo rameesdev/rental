@@ -1,21 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
-const { Flat,Person } = require('../models/Flat.js');
+const { Flat, Person } = require('../models/Flat.js');
 const LastPersonId = require('../models/LastPersonId');
-const {Backup}=require("../models/Backup.js")
+const { Backup, Month } = require("../models/Backup.js")
 const jwt = require("jsonwebtoken")
-const {createFolder,uploadFile,getFile} = require("../utils/googleDrive.js")
+const { createFolder, uploadFile, getFile } = require("../utils/googleDrive.js")
 const multer = require('multer');
-const upload = multer({ dest: './uploads/' })
+const upload = multer({ dest: './uploads/' });
+require("dotenv").config();
 // Create a new flat [x]
 router.post('/flats', async (req, res) => {
     try {
         const { name } = req.body;
-        const flat = await Flat.findOne({name})
-        
-        if(flat)return res.json({status:"error",message:"Flat name already exist"});
-        
+        const flat = await Flat.findOne({ name })
+
+        if (flat) return res.json({ status: "error", message: "Flat name already exist" });
+
         const newFlat = new Flat({ name, persons: [] });
         const savedFlat = await newFlat.save();
         res.status(201).json(savedFlat);
@@ -28,57 +29,74 @@ router.post('/flats', async (req, res) => {
 // Get all flats  [x]
 router.get('/flats', async (req, res) => {
     try {
-        const flats = await Flat.find();
+        let flats;
+        const { month } = req.query;
+        if (month) {
+            const currentMonth = await Month.findOne().sort({ date: -1 });
+            if (currentMonth.month == month) { flats = await Flat.find() }
+            else {
+                const oldMonth = await Month.findOne({ month });
+                if(oldMonth)flats = oldMonth.data;
+                else flats = []
+            }
         
-        console.log(flats)
-        res.json({flats,username:req.session.username});
+           console.log(flats,month)
+
+          return res.json({ flats, username: req.session.username });
+        }
+        flats =  await Flat.find();
+        let months = await Month.find().sort({date:-1});
+        months = months.map(value=>value.month);
+        return res.json({ flats, username: req.session.username ,months});
+        
 
     } catch (err) {
         res.status(500).json({ message: err.message });
-    }
-});
+        console.log(err.message)
 
-
-
+    }})
 
 // Route to add a person to a flat [x]
-const cpUpload = upload.fields([{ name: 'passportFront', maxCount: 1 }, { name: 'passportBack', maxCount: 1 },{name:'qrid',maxCount:1}])
-
-router.post('/flats/:flatName/persons',cpUpload, async (req, res) => {
+const cpUpload = upload.fields([{ name: 'passportFront', maxCount: 1 }, { name: 'passportBack', maxCount: 1 }, { name: 'qrid', maxCount: 1 }])
+router.get("/logout",(req,res)=>{
+    res.clearCookie('token');
+    res.json("success")
+})
+router.post('/flats/:flatName/persons', cpUpload, async (req, res) => {
     try {
-        const id=uuidv4()
+        const id = uuidv4()
         const { flatName } = req.params;
         const { name, mobile, rent } = req.body; // Assuming id is provided by the frontend
-       
+
         // Find flat by name
         //passport
         //qrid 
         const files = req.files;
-        let folderData,passportFront,passportBack,qrid;
-        
-       
-        
-        try{
-           
-        folderData=await createFolder(name,"1LlADbdd8NzANTgi39p5Hnc6XIASyKjxy")
-        console.log(folderData)
-         if(files.passportFront)passportFront = await uploadFile("./"+files.passportFront[0].path,folderData.id,"passportFront",files.passportFront[0].mimetype)
-         if(files.passportBack)passportBack = await uploadFile("./"+files.passportBack[0].path,folderData.id,"passportBack",files.passportBack[0].mimetype)
-        if(files.qrid)qrid= await uploadFile("./"+files.qrid[0].path,folderData.id,"qrid",files.passportFront[0].mimetype)
-        console.log({passportFront,passportBack,qrid})
+        let folderData, passportFront, passportBack, qrid;
 
-        }catch(err){
+
+
+        try {
+
+            folderData = await createFolder(name, "1LlADbdd8NzANTgi39p5Hnc6XIASyKjxy")
+
+            if (files.passportFront) passportFront = await uploadFile("./" + files.passportFront[0].path, folderData.id, "passportFront", files.passportFront[0].mimetype)
+            if (files.passportBack) passportBack = await uploadFile("./" + files.passportBack[0].path, folderData.id, "passportBack", files.passportBack[0].mimetype)
+            if (files.qrid) qrid = await uploadFile("./" + files.qrid[0].path, folderData.id, "qrid", files.passportFront[0].mimetype)
+
+
+        } catch (err) {
             res.status(500).json({ message: err.message });
             console.log(err.message);
             return;
-            
+
         }
-    
+
         const flat = await Flat.findOne({ name: flatName });
         if (!flat) {
             return res.status(404).json({ message: 'Flat not found' });
         }
-        
+
 
         // Create new person object
         const newPerson = {
@@ -88,12 +106,12 @@ router.post('/flats/:flatName/persons',cpUpload, async (req, res) => {
             rent: parseFloat(rent),
             pending: parseFloat(rent),
             history: [],
-            folderId:folderData.id,
+            folderId: folderData.id,
             passportBack,
-            passportFront,qrid
+            passportFront, qrid
         };
 
-      
+
         flat.persons.push(newPerson);
 
         // Save updated flat
@@ -112,14 +130,14 @@ router.post('/flats/:flatName/persons',cpUpload, async (req, res) => {
 router.put('/flats/:flatId/persons/:personId', async (req, res) => {
     try {
         const { flatId, personId } = req.params;
-        const { name, mobile, rent ,pending} = req.body;
-        const flat = await Flat.findOne({name:flatId});
+        const { name, mobile, rent, pending } = req.body;
+        const flat = await Flat.findOne({ name: flatId });
         if (!flat) {
             return res.status(404).json({ message: 'Flat not found' });
         }
-        let person = flat.persons.filter((value)=>{if(value.id===personId)return value;})
+        let person = flat.persons.filter((value) => { if (value.id === personId) return value; })
         person = person[0]
-        console.log(person)
+
         if (!person) {
             return res.status(404).json({ message: 'Person not found' });
         }
@@ -139,17 +157,17 @@ router.put('/flats/:flatId/persons/:personId', async (req, res) => {
 router.delete('/flats/:flatName/persons/:personId', async (req, res) => {
     try {
         const { flatName, personId } = req.params;
-        
+
         const flat = await Flat.findOne({
             name: flatName,
         })
         if (!flat) {
             return res.status(404).json({ message: 'Flat not found' });
         }
-       const remainingPersons=flat.persons.filter(value=>{if(value.id!=personId){return value}})
-       flat.persons=remainingPersons;
-       
-       await flat.save();
+        const remainingPersons = flat.persons.filter(value => { if (value.id != personId) { return value } })
+        flat.persons = remainingPersons;
+
+        await flat.save();
         res.json("success");
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -176,7 +194,7 @@ router.post('/flats/:flatName/persons/:personId/payment', async (req, res) => {
         }
 
         // Find person by custom ID
-        const person = flat.persons.find(p => p.id ===personId);
+        const person = flat.persons.find(p => p.id === personId);
         if (!person) {
             return res.status(404).json({ message: 'Person not found' });
         }
@@ -188,7 +206,7 @@ router.post('/flats/:flatName/persons/:personId/payment', async (req, res) => {
             amount,
             method,
             transactionId,
-            by:req.session.username
+            by: req.session.username
         });
 
         // Save updated flat
@@ -256,7 +274,7 @@ router.post("/login", (req, res) => {
         }
 
         const validUsernames = process.env.USERNAMES.split(",");
-        
+
         // Check if username exists
         if (!validUsernames.includes(username)) {
             res.status(400).json({ status: "error", message: "User not found" });
@@ -287,11 +305,51 @@ router.post("/login", (req, res) => {
         res.status(500).json({ status: "error", message: "Server error, please try again later" });
     }
 });
-router.get("/documents/:id",async(req,res)=>{
-    const {id}=req.params;
-    const data=Buffer.from(await getFile(id))
-    
-    if(data){res.write(data);res.end();return}
+router.get("/documents/:id", async (req, res) => {
+    const { id } = req.params;
+    const data = Buffer.from(await getFile(id))
+
+    if (data) { res.write(data); res.end(); return }
+
+});
+router.post("/next-month",async(req,res)=>{
+    const {newMonth,password}=req.body;
+    if(password != process.env.PASSWORD){return res.status(400).json("wrong password")};
+    try{
+    const month = await Month.findOne({month:newMonth});
+    if(month){return res.status(404).json("month already exist")};
+    const flats = await Flat.find();
+
+        // Update pending for each person in each flat
+        const updatedFlats = await Promise.all(flats.map(async flat => {
+            // Update pending for each person in the flat
+            flat.persons.forEach(person => {
+                // Calculate new pending amount for new month
+                person.pending += person.rent;
+            });
+
+            // Save updated flat
+            return await flat.save();
+        }));
+    const CreatedMonth = new Month({
+        month: newMonth,
+        date: Date.now(),
+        data: updatedFlats, // Initialize with empty array or desired default value
+      });
+      await CreatedMonth.save();
+      res.json("success")}catch(err){
+console.log(err.message);
+res.status(500).json("server error")
+      }
 
 })
+const changeStream = Flat.watch();
+
+changeStream.on("change", async (change) => {
+    const month = await Month.findOne({}).sort({ date: -1 });
+    month.data = await Flat.find();
+    await month.save();
+    console.log("month saved" + month.month)
+});
+
 module.exports = router;

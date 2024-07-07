@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -42,11 +43,14 @@
             border-collapse: collapse;
         }
 
-        table, th, td {
+        table,
+        th,
+        td {
             border: 1px solid #ccc;
         }
 
-        th, td {
+        th,
+        td {
             padding: 10px;
             text-align: left;
         }
@@ -64,7 +68,7 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.4);
+            background-color: rgba(0, 0, 0, 0.4);
         }
 
         .modal-content {
@@ -115,77 +119,124 @@
         .history-list li {
             margin-bottom: 5px;
         }
+
         .custom-modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* High value to ensure it sits on top */
-    top: 50%; /* Center vertically */
-    left: 50%; /* Center horizontally */
-    transform: translate(-50%, -50%); /* Offset to truly center */
-    width: 80%; /* Full width */
-    max-height: 80%; /* Maximum height */
-    background-color: rgb(0, 0, 0); /* Fallback color */
-    background-color: rgba(0, 0, 0, 0.4); /* Black with opacity */
-    overflow: auto; /* Enable scrolling if content overflows */
-}
+            display: none;
+            /* Hidden by default */
+            position: fixed;
+            /* Stay in place */
+            z-index: 1000;
+            /* High value to ensure it sits on top */
+            top: 50%;
+            /* Center vertically */
+            left: 50%;
+            /* Center horizontally */
+            transform: translate(-50%, -50%);
+            /* Offset to truly center */
+            width: 80%;
+            /* Full width */
+            max-height: 80%;
+            /* Maximum height */
+            background-color: rgb(0, 0, 0);
+            /* Fallback color */
+            background-color: rgba(0, 0, 0, 0.4);
+            /* Black with opacity */
+            overflow: auto;
+            /* Enable scrolling if content overflows */
+        }
 
-.custom-modal-content {
-    background-color: #fefefe;
-    padding: 20px;
-    border: 1px solid #888;
-    max-height: 100%; /* Full height of the modal */
-    overflow-y: auto; /* Vertical scrolling if content overflows */
-}
+        .custom-modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            max-height: 100%;
+            /* Full height of the modal */
+            overflow-y: auto;
+            /* Vertical scrolling if content overflows */
+        }
 
-.custom-close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
+        .custom-close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
 
-.custom-close:hover,
-.custom-close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
+        .custom-close:hover,
+        .custom-close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
 
-.custom-document-entry {
-    margin-bottom: 15px;
-}
+        .custom-document-entry {
+            margin-bottom: 15px;
+        }
 
-.custom-document-img {
-    display: block;
-    max-width: 100px; /* Adjust as needed */
-    margin-bottom: 5px;
-}
+        .custom-document-img {
+            display: block;
+            max-width: 100px;
+            /* Adjust as needed */
+            margin-bottom: 5px;
+        }
 
-.custom-download-link {
-    display: block;
-    color: blue;
-    text-decoration: underline;
-    cursor: pointer;
-}
+        .custom-download-link {
+            display: block;
+            color: blue;
+            text-decoration: underline;
+            cursor: pointer;
+        }
 
-.custom-not-uploaded {
-    color: red;
-    font-style: italic;
-}
+        .custom-not-uploaded {
+            color: red;
+            font-style: italic;
+        }
 
+        .header {
+            width: 100%;
+            padding: 10px;
+            background-color: #f1f1f1;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
 
+        .logout-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #4a4a4a;
+            /* Dark grey */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
 
+        .logout-button:hover {
+            background-color: #2f2f2f;
+            /* Darker grey */
+        }
     </style>
 </head>
+
 <body>
+    <div class="header">
+        <button class="logout-button" onclick="logout()">Logout</button>
+    </div>
     <div class="container">
         <h1>Rental Management System</h1>
         <div>
             <label for="flats">Select Flat:</label>
             <select id="flats" onchange="selectFlat()">
-                <option value="">-- Select a Flat --</option>
+                <option value=''>-- Select a Flat --</option>
             </select>
-            <button onclick="newMonth()">New Month</button>
+            <select id="months" onchange="selectMonth(event)">
+
+
+            </select>
+            <button id="newMonth" onclick="nextMonth()">New Month</button>
             <button onclick="addFlat()">Add Flat</button>
             <button onclick="openAddPersonModal()">Add Person</button>
             <button onclick="generateOldMonthCSV()">Generate Current Excel Sheet</button> <!-- New button -->
@@ -227,45 +278,45 @@
                 <label for="person-rent">Rent Amount:</label>
                 <input type="number" id="person-rent-input" step="1" required><br>
                 <label for="passport-front">Passport Front:</label>
-                <input type="file" id="passport-front-input" accept="image/*,.heic" ><br>
+                <input type="file" id="passport-front-input" accept="image/*,.heic"><br>
                 <label for="passport-back">Passport Back:</label>
-                <input type="file" id="passport-back-input" accept="image/*,.heic" ><br>
+                <input type="file" id="passport-back-input" accept="image/*,.heic"><br>
                 <label for="qrid">Qatar ID:</label>
-                <input type="file" id="qrid-input" accept="image/*,.heic" ><br>
+                <input type="file" id="qrid-input" accept="image/*,.heic"><br>
                 <button id="addPersonButton" type="button" onclick="addPerson()">Add Person</button>
                 <label id="uploadProgress" style="display: none;">Uploading Files....,Please Wait</label>
             </form>
         </div>
     </div>
-    
-  <!-- Edit Person Modal -->
-<div id="edit-person-modal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeEditPersonModal()">&times;</span>
-        <h2>Edit Person</h2>
-        <form id="edit-person-form">
-            <label for="edit-person-name">Name:</label>
-            <input type="text" id="edit-person-name-input" required><br>
-            <label for="edit-person-mobile">Mobile:</label>
-            <input type="text" id="edit-person-mobile-input" required><br>
-            <label for="edit-person-rent">Rent Amount:</label>
-            <input type="number" id="edit-person-rent-input" step="1" required><br>
-            <label for="edit-person-pending">Pending Amount:</label>
-            <input type="number" id="edit-person-pending-input" step="1" required><br>
-            <button type="button" onclick="editPerson()">Save Changes</button>
-        </form>
-    </div>
-</div>
-<div id="view-documents-modal" class="custom-modal">
-    <div class="custom-modal-content">
-        <span class="custom-close" onclick="closeViewDocumentsModal()">&times;</span>
-        <h2>View Documents</h2>
-        <div id="custom-documents-list">
-            <!-- Documents will be dynamically added here -->
+
+    <!-- Edit Person Modal -->
+    <div id="edit-person-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditPersonModal()">&times;</span>
+            <h2>Edit Person</h2>
+            <form id="edit-person-form">
+                <label for="edit-person-name">Name:</label>
+                <input type="text" id="edit-person-name-input" required><br>
+                <label for="edit-person-mobile">Mobile:</label>
+                <input type="text" id="edit-person-mobile-input" required><br>
+                <label for="edit-person-rent">Rent Amount:</label>
+                <input type="number" id="edit-person-rent-input" step="1" required><br>
+                <label for="edit-person-pending">Pending Amount:</label>
+                <input type="number" id="edit-person-pending-input" step="1" required><br>
+                <button type="button" onclick="editPerson()">Save Changes</button>
+            </form>
         </div>
-        <button type="button" onclick="closeViewDocumentsModal()">Close</button>
     </div>
-</div>
+    <div id="view-documents-modal" class="custom-modal">
+        <div class="custom-modal-content">
+            <span class="custom-close" onclick="closeViewDocumentsModal()">&times;</span>
+            <h2>View Documents</h2>
+            <div id="custom-documents-list">
+                <!-- Documents will be dynamically added here -->
+            </div>
+            <button type="button" onclick="closeViewDocumentsModal()">Close</button>
+        </div>
+    </div>
 
 
     <div id="payment-modal" class="modal">
@@ -291,54 +342,107 @@
 
     <!-- JavaScript -->
     <script>
+        let months;
+        let selectedMonth;
+        let CurrentMonth;
         let user = "";
         let flats = {}; // Global object to hold flats data
         let selectedFlat = null; // Variable to store currently selected flat
         let currentPersonIndex = null; // Index of the currently selected person
-        
+
 
         // Function to handle flat selection from dropdown
-        function addFlat() {
-    const flatName = prompt("Enter flat name:");
+        async function nextMonth(test) {
+            const newMonth = test||liveMonth();
+            const password = prompt(`Are you sure to create a new month ${newMonth},If yes enter password`);
+            if (!password) return alert("invalid password");
+            try {
+                const response = await fetch(`/api/next-month`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ newMonth, password })
 
-    if (flatName) {
-        // Prepare the data to send to the server
-        const data = { name: flatName };
+                });
+                if (response.ok) {
+                    alert("new month added Successfully");
+                     let csvContent = "";
 
-        fetch('/api/flats', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Failed to add flat: ${response.status} ${response.statusText}`);
+                // Header for CSV
+                csvContent += "Flat,Name,Mobile,Rent,Pending\n";
+
+                // Prepare data for JSON backup
+                const jsonData = {
+                    date: new Date(),
+                    flats
+                };
+
+                // Iterate through all flats and their persons
+                Object.keys(flats).forEach(flatName => {
+
+                    // Append to CSV
+                    flats[flatName].forEach(person => {
+                        csvContent += `${flatName},${person.name},${person.mobile},${person.rent},${person.pending.toFixed(2)}\n`;
+                    });
+
+                    // Add rent to pending amount for each person
+
+                });
+                await sendToServer(jsonData,csvContent);
+                location.reload();
+
+                }
+                if (response.status == 404) throw Error("Month already exist")
+                if (response.status == 400) { throw Error("wrong password") };
+                if (response.status == 500) { throw Error("Failed creating new month") };
+               
+            } catch (err) {
+                console.log(err);
+                alert(err.message)
             }
-            return response.json();
-        })
-        .then(newFlat => {
-            if(newFlat.status =="error"){alert("Flat with this name already exist");return;}
-            // Assuming flats is your frontend data structure, update it
-            flats[newFlat.name] = []; // Assuming your flats object is structured like this
-            const flatSelect = document.getElementById('flats');
-            const option = document.createElement('option');
-            option.value = newFlat.name;
-            option.text = newFlat.name;
-            flatSelect.appendChild(option);
-            flatSelect.value = newFlat.name;
-            selectFlat(); // Optionally refresh the UI if needed
-            alert('Flat added successfully!');
-        })
-        .catch(error => {
-            console.error('Error adding flat:', error);
-            alert('Failed to add flat. Please try again.');
-        });
-    } else {
-        alert("Invalid flat name.");
-    }
-}
+        }
+        function addFlat() {
+            const flatName = prompt("Enter flat name:");
+
+            if (flatName) {
+                // Prepare the data to send to the server
+                const data = { name: flatName };
+
+                fetch('/api/flats', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Failed to add flat: ${response.status} ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(newFlat => {
+                        if (newFlat.status == "error") { alert("Flat with this name already exist"); return; }
+                        // Assuming flats is your frontend data structure, update it
+                        flats[newFlat.name] = []; // Assuming your flats object is structured like this
+                        const flatSelect = document.getElementById('flats');
+                        const option = document.createElement('option');
+                        option.value = newFlat.name;
+                        option.text = newFlat.name;
+                        flatSelect.appendChild(option);
+                        flatSelect.value = newFlat.name;
+                        selectFlat(); // Optionally refresh the UI if needed
+                        alert('Flat added successfully!');
+                    })
+                    .catch(error => {
+                        console.error('Error adding flat:', error);
+                        alert('Failed to add flat. Please try again.');
+                    });
+            } else {
+                alert("Invalid flat name.");
+            }
+        }
 
         function selectFlat() {
             const flatSelect = document.getElementById('flats');
@@ -347,16 +451,21 @@
         }
 
         // Function to fetch flats data from backend
-        async function fetchFlats() {
+        async function fetchFlats(month) {
             try {
-                const response = await fetch('/api/flats'); // Adjust URL as per your server setup
+                const url = (month) ? '/api/flats?month=' + month : '/api/flats';
+                const response = await fetch(url); // Adjust URL as per your server setup
                 if (!response.ok) {
                     throw new Error('Failed to fetch flats');
                 }
                 const responseData = (await response.json())
-                const fetchedFlats= responseData.flats;
+                const fetchedFlats = responseData.flats;
                 user = responseData.username;
+                months = await responseData.months;
+                if (!month) currentMonth = months[0]
+
                 // Assign fetched flats to the global flats object
+                flats = {}
                 fetchedFlats.forEach(flat => {
                     flats[flat.name] = flat.persons;
                 });
@@ -369,6 +478,7 @@
         // Function to populate flats dropdown with fetched data
         function populateDropdown() {
             const flatSelect = document.getElementById('flats');
+            flatSelect.innerHTML = " <option value=''>-- Select a Flat --</option>"
             Object.keys(flats).forEach(flatName => {
                 const option = document.createElement('option');
                 option.value = flatName;
@@ -376,138 +486,153 @@
                 flatSelect.appendChild(option);
             });
         }
+        async function selectMonth(e) {
+            console.log(e.target.value);
+            selectedMonth = e.target.value;
+            console.log(selectedMonth);
+            await fetchFlats(e.target.value);
+            selectedFlat = "";
+            await displayFlatDetails()
+            await populateDropdown();
 
-      // Function to display details of persons in the selected flat
-function displayFlatDetails() {
-    const tableBody = document.getElementById('persons-table').getElementsByTagName('tbody')[0];
-    tableBody.innerHTML = '';
 
-    if (selectedFlat && flats[selectedFlat]) {
-        flats[selectedFlat].forEach((person, index) => {
-            const row = tableBody.insertRow();
-            row.insertCell(0).innerText = person.name;
-            row.insertCell(1).innerText = person.mobile;
-            row.insertCell(2).innerText = person.rent;
-            const pendingCell = row.insertCell(3);
-            pendingCell.innerText = person.pending.toFixed(2);
-            if (person.pending > 0) {
-                pendingCell.classList.add('red');
+        }
+        // Function to display details of persons in the selected flat
+        function displayFlatDetails() {
+            const tableBody = document.getElementById('persons-table').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+
+            if (selectedFlat && flats[selectedFlat]) {
+                flats[selectedFlat].forEach((person, index) => {
+                    const row = tableBody.insertRow();
+                    row.insertCell(0).innerText = person.name;
+                    row.insertCell(1).innerText = person.mobile;
+                    row.insertCell(2).innerText = person.rent;
+                    const pendingCell = row.insertCell(3);
+                    pendingCell.innerText = person.pending.toFixed(2);
+                    if (person.pending > 0) {
+                        pendingCell.classList.add('red');
+                    }
+                    const actionsCell = row.insertCell(4);
+                    const historyButton = document.createElement('button');
+                    historyButton.innerText = 'Payment History';
+                    historyButton.onclick = () => showHistory(index);
+                    actionsCell.appendChild(historyButton);
+                    const documents = document.createElement("button")
+                    documents.innerText = "Documents";
+                    documents.onclick = (function (person) {
+                        return function () {
+
+                            openViewDocumentsModal((person.passportFront?.id) ? `/api/documents/${person.passportFront.id}` : undefined, (person.passportBack?.id) ? `/api/documents/${person.passportBack.id}` : undefined, (person.qrid?.id) ? `/api/documents/${person.qrid.id}` : undefined);
+                        };
+                    })(person);
+                    actionsCell.appendChild(documents)
+
+
+
+                    console.log(selectedMonth == currentMonth)
+                    if (selectedMonth == currentMonth) {
+                        const payButton = document.createElement('button');
+                        payButton.innerText = 'Pay Rent';
+                        payButton.onclick = () => openPaymentModal(index);
+                        actionsCell.appendChild(payButton);
+
+                        const deleteButton = document.createElement('button');
+                        deleteButton.innerText = 'Delete Person';
+                        // Capture person.id in the closure
+                        deleteButton.onclick = (function (personId) {
+                            return function () {
+                                deletePerson(personId);
+                            };
+                        })(person.id);
+                        actionsCell.appendChild(deleteButton);
+                        const editButton = document.createElement("button")
+                        editButton.innerText = "Edit"
+                        editButton.onclick = (function (id, ind) {
+                            return function () {
+                                openEditPersonModal(ind)
+
+                            };
+                        })(person.id, index);
+                        if (user == "B") actionsCell.appendChild(editButton);
+                    }
+
+                });
             }
-            const actionsCell = row.insertCell(4);
+        }
+        function openViewDocumentsModal(passportFront, passportBack, qatarId) {
+            const documentsList = document.getElementById('custom-documents-list');
+            documentsList.innerHTML = ''; // Clear previous content
 
-            const payButton = document.createElement('button');
-            payButton.innerText = 'Pay Rent';
-            payButton.onclick = () => openPaymentModal(index);
-            actionsCell.appendChild(payButton);
+            // Function to create document entry
+            function createDocumentEntry(label, fileUrl) {
+                const container = document.createElement('div');
+                container.classList.add('custom-document-entry');
 
-            const historyButton = document.createElement('button');
-            historyButton.innerText = 'Payment History';
-            historyButton.onclick = () => showHistory(index);
-            actionsCell.appendChild(historyButton);
+                if (fileUrl) {
+                    const img = document.createElement('img');
+                    img.src = fileUrl;
+                    img.alt = label;
+                    img.classList.add('custom-document-img');
 
-            const deleteButton = document.createElement('button');
-            deleteButton.innerText = 'Delete Person';
-            // Capture person.id in the closure
-            deleteButton.onclick = (function(personId) {
-                return function() {
-                    deletePerson(personId);
-                };
-            })(person.id);
-            actionsCell.appendChild(deleteButton);
-            const editButton = document.createElement("button")
-            editButton.innerText = "Edit"
-            editButton.onclick =(function(id,ind) {
-                return function() {
-                    openEditPersonModal(ind)
+                    const link = document.createElement('a');
+                    link.href = fileUrl;
+                    link.download = label;
+                    link.textContent = `Download ${label}`;
+                    link.classList.add('custom-download-link');
 
-                };
-            })(person.id,index);
-            if(user=="B")actionsCell.appendChild(editButton);
-            const documents = document.createElement("button")
-            documents.innerText = "Documents";
-            documents.onclick=(function(person) {
-                return function() {
-                    
-                    openViewDocumentsModal((person.passportFront?.id)?`/api/documents/${person.passportFront.id}`:undefined, (person.passportBack?.id)?`/api/documents/${person.passportBack.id}`:undefined,(person.qrid?.id)?`/api/documents/${person.qrid.id}`:undefined);
-                };
-            })(person);
-            actionsCell.appendChild(documents)
-        });
-    }
-}
-function openViewDocumentsModal(passportFront, passportBack, qatarId) {
-    const documentsList = document.getElementById('custom-documents-list');
-    documentsList.innerHTML = ''; // Clear previous content
+                    container.appendChild(img);
+                    container.appendChild(link);
+                } else {
+                    const notUploadedText = document.createElement('p');
+                    notUploadedText.textContent = `${label} not uploaded`;
+                    notUploadedText.classList.add('custom-not-uploaded');
+                    container.appendChild(notUploadedText);
+                }
 
-    // Function to create document entry
-    function createDocumentEntry(label, fileUrl) {
-        const container = document.createElement('div');
-        container.classList.add('custom-document-entry');
+                return container;
+            }
 
-        if (fileUrl) {
-            const img = document.createElement('img');
-            img.src = fileUrl;
-            img.alt = label;
-            img.classList.add('custom-document-img');
+            // Add passport front
+            documentsList.appendChild(createDocumentEntry('Passport Front', passportFront));
 
-            const link = document.createElement('a');
-            link.href = fileUrl;
-            link.download = label;
-            link.textContent = `Download ${label}`;
-            link.classList.add('custom-download-link');
+            // Add passport back
+            documentsList.appendChild(createDocumentEntry('Passport Back', passportBack));
 
-            container.appendChild(img);
-            container.appendChild(link);
-        } else {
-            const notUploadedText = document.createElement('p');
-            notUploadedText.textContent = `${label} not uploaded`;
-            notUploadedText.classList.add('custom-not-uploaded');
-            container.appendChild(notUploadedText);
+            // Add Qatar ID
+            documentsList.appendChild(createDocumentEntry('Qatar ID', qatarId));
+
+            // Show the modal
+            const modal = document.getElementById('view-documents-modal');
+            modal.style.display = 'block';
         }
 
-        return container;
-    }
-
-    // Add passport front
-    documentsList.appendChild(createDocumentEntry('Passport Front', passportFront));
-
-    // Add passport back
-    documentsList.appendChild(createDocumentEntry('Passport Back', passportBack));
-
-    // Add Qatar ID
-    documentsList.appendChild(createDocumentEntry('Qatar ID', qatarId));
-
-    // Show the modal
-    const modal = document.getElementById('view-documents-modal');
-    modal.style.display = 'block';
-}
-
-function closeViewDocumentsModal() {
-    const modal = document.getElementById('view-documents-modal');
-    modal.style.display = 'none';
-}
-
-
-async function deletePerson(id) {
-    let result = await confirm("Are you sure you want to delete this person?");
-    
-    if (!result) return;
-    
-    try {
-        const response = await fetch(`/api/flats/${selectedFlat}/persons/${id}`, { method: "DELETE" });
-        
-        if (!response.ok) {
-            alert("Error deleting person");
-            return;
+        function closeViewDocumentsModal() {
+            const modal = document.getElementById('view-documents-modal');
+            modal.style.display = 'none';
         }
 
-        await fetchFlats();
-        displayFlatDetails();
-    } catch (error) {
-        console.error("Error:", error);
-        alert("An error occurred while deleting the person.");
-    }
-}
+
+        async function deletePerson(id) {
+            let result = await confirm("Are you sure you want to delete this person?");
+
+            if (!result) return;
+
+            try {
+                const response = await fetch(`/api/flats/${selectedFlat}/persons/${id}`, { method: "DELETE" });
+
+                if (!response.ok) {
+                    alert("Error deleting person");
+                    return;
+                }
+
+                await fetchFlats();
+                displayFlatDetails();
+            } catch (error) {
+                console.error("Error:", error);
+                alert("An error occurred while deleting the person.");
+            }
+        }
 
 
         // Function to open modal for adding a new person
@@ -516,70 +641,70 @@ async function deletePerson(id) {
         }
         let isSubmitted = false;
 
-async function addPerson() {
-    if (isSubmitted) return;
-    isSubmitted = true;
+        async function addPerson() {
+            if (isSubmitted) return;
+            isSubmitted = true;
 
-    const name = document.getElementById('person-name-input').value;
-    const mobile = document.getElementById('person-mobile-input').value;
-    const rent = document.getElementById('person-rent-input').value;
-    const passportFront = document.getElementById('passport-front-input').files[0];
-    const passportBack = document.getElementById('passport-back-input').files[0];
-    const qrid = document.getElementById('qrid-input').files[0];
+            const name = document.getElementById('person-name-input').value;
+            const mobile = document.getElementById('person-mobile-input').value;
+            const rent = document.getElementById('person-rent-input').value;
+            const passportFront = document.getElementById('passport-front-input').files[0];
+            const passportBack = document.getElementById('passport-back-input').files[0];
+            const qrid = document.getElementById('qrid-input').files[0];
 
-    if (!name || !mobile || !rent ) {
-        alert("Please fill in all fields and select the necessary files.");
-        isSubmitted = false;
-        return;
-    }
+            if (!name || !mobile || !rent) {
+                alert("Please fill in all fields and select the necessary files.");
+                isSubmitted = false;
+                return;
+            }
 
-    if (!selectedFlat) {
-        alert("Select a flat");
-        isSubmitted = false;
-        return;
-    }
+            if (!selectedFlat) {
+                alert("Select a flat");
+                isSubmitted = false;
+                return;
+            }
 
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('mobile', mobile);
-    formData.append('rent', parseFloat(rent));
-    formData.append('pending', parseFloat(rent));
-    formData.append('passportFront', passportFront);
-    formData.append('passportBack', passportBack);
-    formData.append('qrid', qrid);
-    document.getElementById("uploadProgress").style.display="block"
-    try {
-        const response = await fetch(`/api/flats/${selectedFlat}/persons`, {
-            method: 'POST',
-            body: formData
-        });
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('mobile', mobile);
+            formData.append('rent', parseFloat(rent));
+            formData.append('pending', parseFloat(rent));
+            formData.append('passportFront', passportFront);
+            formData.append('passportBack', passportBack);
+            formData.append('qrid', qrid);
+            document.getElementById("uploadProgress").style.display = "block"
+            try {
+                const response = await fetch(`/api/flats/${selectedFlat}/persons`, {
+                    method: 'POST',
+                    body: formData
+                });
 
-        if (!response.ok) {
-            throw new Error('Failed to add person');
+                if (!response.ok) {
+                    throw new Error('Failed to add person');
+                }
+
+                const newPerson = await response.json();
+
+                flats[selectedFlat].push(newPerson);
+
+                closeModal();
+                displayFlatDetails();
+                isSubmitted = false;
+            } catch (error) {
+                console.error('Error adding person:', error.message);
+                alert('Failed to add person. Please try again.');
+                isSubmitted = false;
+            }
+            document.getElementById("uploadProgress").style.display = "none"
         }
-
-        const newPerson = await response.json();
-
-        flats[selectedFlat].push(newPerson);
-
-        closeModal();
-        displayFlatDetails();
-        isSubmitted = false;
-    } catch (error) {
-        console.error('Error adding person:', error.message);
-        alert('Failed to add person. Please try again.');
-        isSubmitted = false;
-    }
-    document.getElementById("uploadProgress").style.display="none"
-}
 
         // Function to open modal for making payment
         function openPaymentModal(personIndex) {
             currentPersonIndex = personIndex;
             document.getElementById('payment-modal').style.display = 'block';
-            document.getElementById('payment-method').oninput=(e)=>{
-                if(e.target.value=="Bank"){document.getElementById('transaction-details').style.display = 'block';}
-                if(e.target.value=="Cash"){document.getElementById('transaction-details').style.display = 'none';}
+            document.getElementById('payment-method').oninput = (e) => {
+                if (e.target.value == "Bank") { document.getElementById('transaction-details').style.display = 'block'; }
+                if (e.target.value == "Cash") { document.getElementById('transaction-details').style.display = 'none'; }
             }
         }
 
@@ -598,96 +723,96 @@ async function addPerson() {
 
         // Function to make payment for rent
         async function makePayment() {
-    const amount = parseFloat(document.getElementById('payment-amount').value);
-    const method = document.getElementById('payment-method').value;
-    const transactionId = document.getElementById('transaction-id').value;
+            const amount = parseFloat(document.getElementById('payment-amount').value);
+            const method = document.getElementById('payment-method').value;
+            const transactionId = document.getElementById('transaction-id').value;
 
-    if (!amount || !method) {
-        alert("Please fill in all fields.");
-        return;
-    }
+            if (!amount || !method) {
+                alert("Please fill in all fields.");
+                return;
+            }
 
-    const person = flats[selectedFlat][currentPersonIndex];
-    const currentPending = person.pending;
+            const person = flats[selectedFlat][currentPersonIndex];
+            const currentPending = person.pending;
 
-    if (amount > currentPending) {
-        const confirmed = confirm("Warning: The payment amount is greater than the pending amount. This will result in a negative pending balance. Are you sure you want to proceed?");
+            if (amount > currentPending) {
+                const confirmed = confirm("Warning: The payment amount is greater than the pending amount. This will result in a negative pending balance. Are you sure you want to proceed?");
 
-        if (!confirmed) {
-            return; // Cancel payment if not confirmed
+                if (!confirmed) {
+                    return; // Cancel payment if not confirmed
+                }
+            }
+
+            const payment = {
+                amount: amount,
+                method: method,
+                transactionId: transactionId
+            };
+
+            try {
+                const response = await fetch(`/api/flats/${selectedFlat}/persons/${person.id}/payment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payment)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to make payment');
+                }
+
+                person.pending -= amount;
+                closePaymentModal();
+                closeHistory();
+                await fetchFlats();
+                displayFlatDetails();
+
+            } catch (error) {
+                console.error('Error making payment:', error.message);
+                alert('Failed to make payment. Please try again.');
+            }
         }
-    }
-
-    const payment = {
-        amount: amount,
-        method: method,
-        transactionId: transactionId
-    };
-
-    try {
-        const response = await fetch(`/api/flats/${selectedFlat}/persons/${person.id}/payment`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payment)
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to make payment');
-        }
-
-        person.pending -= amount;
-        closePaymentModal();
-        closeHistory();
-        await fetchFlats();
-        displayFlatDetails();
-
-    } catch (error) {
-        console.error('Error making payment:', error.message);
-        alert('Failed to make payment. Please try again.');
-    }
-}
 
 
         function showHistory(personIndex) {
-    const person = flats[selectedFlat][personIndex];
-    const historySection = document.getElementById('history-section');
-    const historyList = document.getElementById('payment-history');
-    historyList.innerHTML = '';
-    
-    // Reverse iterate over person's history to display latest payment first
-    for (let i = person.history.length - 1; i >= 0; i--) {
-        const payment = person.history[i];
-        const listItem = document.createElement('li');
-        
-        // Format payment date to dd/mm/yyyy
-        const paymentDate = new Date(payment.date);
-        const formattedDate = `${paymentDate.getDate()}/${paymentDate.getMonth() + 1}/${paymentDate.getFullYear()}`;
-        
-        let paymentDetails = `
+            const person = flats[selectedFlat][personIndex];
+            const historySection = document.getElementById('history-section');
+            const historyList = document.getElementById('payment-history');
+            historyList.innerHTML = '';
+
+            // Reverse iterate over person's history to display latest payment first
+            for (let i = person.history.length - 1; i >= 0; i--) {
+                const payment = person.history[i];
+                const listItem = document.createElement('li');
+
+                // Format payment date to dd/mm/yyyy
+                const paymentDate = new Date(payment.date);
+                const formattedDate = `${paymentDate.getDate()}/${paymentDate.getMonth() + 1}/${paymentDate.getFullYear()}`;
+
+                let paymentDetails = `
             <strong>Date:</strong> ${formattedDate}<br>
             <strong>Amount:</strong> ${payment.amount.toFixed(2)}<br>
             <strong>Method:</strong> ${payment.method}
             <br><strong>By:</strong> ${payment.by}
             <br><br>`;
-        
-        if (payment.method === 'Bank' && payment.transactionId) {
-            paymentDetails += `<br><strong>Transaction ID:</strong> ${payment.transactionId}`;
+
+                if (payment.method === 'Bank' && payment.transactionId) {
+                    paymentDetails += `<br><strong>Transaction ID:</strong> ${payment.transactionId}`;
+                }
+
+                listItem.innerHTML = paymentDetails;
+                historyList.appendChild(listItem);
+            }
+
+            document.getElementById('person-name').innerText = person.name;
+            historySection.classList.add('active');
+            historySection.scrollIntoView({
+                behavior: 'smooth', // Smooth scroll behavior
+                block: 'start',     // Alignment within the container (start, center, end, nearest)
+                inline: 'start'     // Alignment within the container's inline axis (start, center, end, nearest)
+            });
         }
-        
-        listItem.innerHTML = paymentDetails;
-        historyList.appendChild(listItem);
-    }
-    
-    document.getElementById('person-name').innerText = person.name;
-    historySection.classList.add('active');
-    historySection.scrollIntoView({
-    behavior: 'smooth', // Smooth scroll behavior
-    block: 'start',     // Alignment within the container (start, center, end, nearest)
-    inline: 'start'     // Alignment within the container's inline axis (start, center, end, nearest)
-});
-}
 
 
 
@@ -700,211 +825,233 @@ async function addPerson() {
 
         // Function to handle starting a new month
         async function newMonth() {
-    const confirmed = confirm("Are you sure you want to start a new month? This will update pending amounts for all persons in all flats.");
+            const confirmed = confirm("Are you sure you want to start a new month? This will update pending amounts for all persons in all flats.");
 
-    if (confirmed) {
-        try {
-            let csvContent = "";
+            if (confirmed) {
+                try {
+                    let csvContent = "";
 
-            // Header for CSV
-            csvContent += "Flat,Name,Mobile,Rent,Pending\n";
+                    // Header for CSV
+                    csvContent += "Flat,Name,Mobile,Rent,Pending\n";
 
-            // Prepare data for JSON backup
-            const jsonData = {
-                date: new Date(),
-                flats: {}
-            };
+                    // Prepare data for JSON backup
+                    const jsonData = {
+                        date: new Date(),
+                        flats
+                    };
 
-            // Iterate through all flats and their persons
-            Object.keys(flats).forEach(flatName => {
-                jsonData.flats[flatName] = flats[flatName].map(person => ({
-                    name: person.name,
-                    mobile: person.mobile,
-                    rent: person.rent,
-                    pending: person.pending.toFixed(2)
-                }));
+                    // Iterate through all flats and their persons
+                    Object.keys(flats).forEach(flatName => {
 
-                // Append to CSV
-                flats[flatName].forEach(person => {
-                    csvContent += `${flatName},${person.name},${person.mobile},${person.rent},${person.pending.toFixed(2)}\n`;
-                });
-           
-                // Add rent to pending amount for each person
-                
-            });
+                        // Append to CSV
+                        flats[flatName].forEach(person => {
+                            csvContent += `${flatName},${person.name},${person.mobile},${person.rent},${person.pending.toFixed(2)}\n`;
+                        });
+
+                        // Add rent to pending amount for each person
+
+                    });
+                    try {
+                        const response = await fetch('/api/new-month', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Failed to update pending amounts for new month');
+                        }
+
+                        // Reload flats data or update UI as needed
+                        fetchFlats().then(() => {
+
+                            selectFlat(); // Select initial flat after fetching data
+                        });
+                    } catch (error) {
+                        console.error('Error handling new month:', error.message);
+                        alert('Failed to update pending amounts for new month. Please try again.');
+                        return;
+                    }
+                    // Send both JSON data and CSV content to server
+                    await sendToServer(jsonData, csvContent);
+
+                    // After sending data and updating locally, update UI
+                    displayFlatDetails();
+
+                } catch (error) {
+                    console.error('Error sending data to server:', error.message);
+                    alert('Failed to send data to server.');
+                }
+            }
+        }
+
+        async function sendToServer(jsonData, csvContent) {
             try {
-        const response = await fetch('/api/new-month', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+                // Assume you have an API endpoint to send the data to
+                const response = await fetch('/api/backup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ jsonData, csvContent })
+                });
 
-        if (!response.ok) {
-            throw new Error('Failed to update pending amounts for new month');
+                if (!response.ok) {
+                    throw new Error(`Failed to send data to server: ${response.status}`);
+                }
+
+                console.log('Data successfully sent to server.');
+
+            } catch (error) {
+                console.error('Error sending data to server:', error.message);
+                alert('Failed to send data to server.');
+            }
         }
 
-        // Reload flats data or update UI as needed
-        fetchFlats().then(() => {
-            
-            selectFlat(); // Select initial flat after fetching data
-        });
-    } catch (error) {
-        console.error('Error handling new month:', error.message);
-        alert('Failed to update pending amounts for new month. Please try again.');
-        return;
-    }
-            // Send both JSON data and CSV content to server
-            await sendToServer(jsonData, csvContent);
 
-            // After sending data and updating locally, update UI
-            displayFlatDetails();
 
-        } catch (error) {
-            console.error('Error sending data to server:', error.message);
-            alert('Failed to send data to server.');
+        // Function to generate CSV for old month data across all flats
+        async function generateOldMonthCSV() {
+            try {
+                let csvContent = "data:text/csv;charset=utf-8,";
+
+                // Header for CSV
+                csvContent += "Flat,Name,Mobile,Rent,Pending\n";
+
+                // Iterate through all flats and their persons
+                Object.keys(flats).forEach(flatName => {
+                    flats[flatName].forEach(person => {
+                        csvContent += `${flatName},${person.name},${person.mobile},${person.rent},${person.pending.toFixed(2)}\n`;
+                    });
+                });
+
+                // Create download link and trigger download
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `old_month_data_${new Date().toLocaleDateString()}.csv`);
+                document.body.appendChild(link); // Required for Firefox
+                link.click();
+            } catch (error) {
+                console.error('Error generating CSV:', error.message);
+                alert('Failed to generate CSV.');
+            }
         }
-    }
-}
-
-async function sendToServer(jsonData, csvContent) {
-    try {
-        // Assume you have an API endpoint to send the data to
-        const response = await fetch('/api/backup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ jsonData, csvContent })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to send data to server: ${response.status}`);
-        }
-
-        console.log('Data successfully sent to server.');
-
-    } catch (error) {
-        console.error('Error sending data to server:', error.message);
-        alert('Failed to send data to server.');
-    }
-}
-
-
-       
-// Function to generate CSV for old month data across all flats
-async function generateOldMonthCSV() {
-    try {
-        let csvContent = "data:text/csv;charset=utf-8,";
-
-        // Header for CSV
-        csvContent += "Flat,Name,Mobile,Rent,Pending\n";
-
-        // Iterate through all flats and their persons
-        Object.keys(flats).forEach(flatName => {
-            flats[flatName].forEach(person => {
-                csvContent += `${flatName},${person.name},${person.mobile},${person.rent},${person.pending.toFixed(2)}\n`;
-            });
-        });
-
-        // Create download link and trigger download
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `old_month_data_${new Date().toLocaleDateString()}.csv`);
-        document.body.appendChild(link); // Required for Firefox
-        link.click();
-    } catch (error) {
-        console.error('Error generating CSV:', error.message);
-        alert('Failed to generate CSV.');
-    }
-}
 
         // Initial fetch and populate dropdown
-        fetchFlats().then(() => {
+        fetchFlats().then(async () => {
+            months.forEach(month => {
+                const option = document.createElement("option");
+                option.textContent = month;
+                option.value = month;
+                document.getElementById("months").appendChild(option)
+            })
+            selectedMonth = await currentMonth;
+
+            if (liveMonth() == selectedMonth) { document.getElementById("newMonth").disabled = true; console.log(selectedMonth) ;document.getElementById("newMonth").title="Months up to this date already exist"; }
             populateDropdown();
             selectFlat(); // Select initial flat after fetching data
         });
 
-        document.addEventListener("DOMContentLoaded", function() {
-    const inputs = document.querySelectorAll("#person-modal .modal-content input")
+        document.addEventListener("DOMContentLoaded", function () {
+            const inputs = document.querySelectorAll("#person-modal .modal-content input")
 
-    inputs.forEach((input, index) => {
-        input.addEventListener("keydown", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                const nextInput = inputs[index + 1];
-                if (nextInput) {
-                    nextInput.focus();
-                } else {
-                    // If it's the last input, focus on the submit button
-                    document.querySelector("button[onclick='addPerson()']").focus();
-                }
-            }
+            inputs.forEach((input, index) => {
+                input.addEventListener("keydown", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        const nextInput = inputs[index + 1];
+                        if (nextInput) {
+                            nextInput.focus();
+                        } else {
+                            // If it's the last input, focus on the submit button
+                            document.querySelector("button[onclick='addPerson()']").focus();
+                        }
+                    }
+                });
+            });
         });
-    });
-});
-let currentEditPersonIndex = null; // Store the index of the person being edited
+        let currentEditPersonIndex = null; // Store the index of the person being edited
 
-// Function to open modal for editing a person
-function openEditPersonModal(personIndex) {
-    currentEditPersonIndex = personIndex;
-    const person = flats[selectedFlat][personIndex];
+        // Function to open modal for editing a person
+        function openEditPersonModal(personIndex) {
+            currentEditPersonIndex = personIndex;
+            const person = flats[selectedFlat][personIndex];
 
-    // Populate the form with the person's current details
-    document.getElementById('edit-person-name-input').value = person.name;
-    document.getElementById('edit-person-mobile-input').value = person.mobile;
-    document.getElementById('edit-person-rent-input').value = person.rent;
-     document.getElementById('edit-person-pending-input').value=person.pending;
-    document.getElementById('edit-person-modal').style.display = 'block';
-}
-
-// Function to close the modal for editing person
-function closeEditPersonModal() {
-    document.getElementById('edit-person-modal').style.display = 'none';
-    document.getElementById('edit-person-form').reset();
-    currentEditPersonIndex = null;
-}
-async function editPerson() {
-    const name = document.getElementById('edit-person-name-input').value;
-    const mobile = document.getElementById('edit-person-mobile-input').value;
-    const rent = parseFloat(document.getElementById('edit-person-rent-input').value);
-    const pending = parseFloat(document.getElementById('edit-person-pending-input').value)
-    if (!name || !mobile || !rent ||!pending) {
-        alert("Please fill in all fields.");
-        return;
-    }
-
-    const person = {
-        id: flats[selectedFlat][currentEditPersonIndex].id,
-        name: name,
-        mobile: mobile,
-        rent: rent,
-        pending // Keep the current pending amount
-    };
-
-    try {
-        const response = await fetch(`/api/flats/${selectedFlat}/persons/${person.id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(person)
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to update person');
+            // Populate the form with the person's current details
+            document.getElementById('edit-person-name-input').value = person.name;
+            document.getElementById('edit-person-mobile-input').value = person.mobile;
+            document.getElementById('edit-person-rent-input').value = person.rent;
+            document.getElementById('edit-person-pending-input').value = person.pending;
+            document.getElementById('edit-person-modal').style.display = 'block';
         }
 
-        // Update the person in the local data
-        flats[selectedFlat][currentEditPersonIndex] = person;
-        closeEditPersonModal();
-        displayFlatDetails();
-    } catch (error) {
-        console.error('Error updating person:', error.message);
-        alert('Failed to update person. Please try again.');
-    }
-}
+        // Function to close the modal for editing person
+        function closeEditPersonModal() {
+            document.getElementById('edit-person-modal').style.display = 'none';
+            document.getElementById('edit-person-form').reset();
+            currentEditPersonIndex = null;
+        }
+        async function editPerson() {
+            const name = document.getElementById('edit-person-name-input').value;
+            const mobile = document.getElementById('edit-person-mobile-input').value;
+            const rent = parseFloat(document.getElementById('edit-person-rent-input').value);
+            const pending = parseFloat(document.getElementById('edit-person-pending-input').value)
+            if (!name || !mobile || !rent || !pending) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            const person = {
+                id: flats[selectedFlat][currentEditPersonIndex].id,
+                name: name,
+                mobile: mobile,
+                rent: rent,
+                pending // Keep the current pending amount
+            };
+
+            try {
+                const response = await fetch(`/api/flats/${selectedFlat}/persons/${person.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(person)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update person');
+                }
+
+                // Update the person in the local data
+                flats[selectedFlat][currentEditPersonIndex] = person;
+                closeEditPersonModal();
+                displayFlatDetails();
+            } catch (error) {
+                console.error('Error updating person:', error.message);
+                alert('Failed to update person. Please try again.');
+            }
+        }
+        async function logout() {
+            await fetch("/api/logout").then(() => { location.reload() })
+        }
+        function liveMonth() {
+            // Create a Date object from the string (assuming the input is in a format parseable by Date)
+            const date = new Date();
+
+            // Extract the month and year
+            let month = date.getMonth() + 1; // getMonth() returns 0-11, so we add 1
+            const year = date.getFullYear();
+
+            // Pad the month with a leading zero if necessary
+            month = month.toString().padStart(2, '0');
+
+            // Combine month and year in the desired format
+            return `${month}/${year}`;
+        }
+
     </script>
 </body>
+
 </html>
