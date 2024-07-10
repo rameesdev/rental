@@ -936,12 +936,18 @@
                         csvContent += `${flatName},${person.name},${person.mobile},${person.rent},${person.pending.toFixed(2)}\n`;
                     });
                 });
+                function formatDateToDDMMYYYY(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() is zero-based
+    const year = date.getFullYear();
 
+    return `${day}/${month}/${year}`;
+}
                 // Create download link and trigger download
                 const encodedUri = encodeURI(csvContent);
                 const link = document.createElement("a");
                 link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `old_month_data_${new Date().toLocaleDateString()}.csv`);
+                link.setAttribute("download", `bsmbusiness_data_${formatDateToDDMMYYYY(new Date())}.csv`);
                 document.body.appendChild(link); // Required for Firefox
                 link.click();
             } catch (error) {
