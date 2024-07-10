@@ -547,11 +547,11 @@
                         const deleteButton = document.createElement('button');
                         deleteButton.innerText = 'Delete Person';
                         // Capture person.id in the closure
-                        deleteButton.onclick = (function (personId) {
+                        deleteButton.onclick = (function (person) {
                             return function () {
-                                deletePerson(personId);
+                                deletePerson(person);
                             };
-                        })(person.id);
+                        })(person);
                         actionsCell.appendChild(deleteButton);
                         const editButton = document.createElement("button")
                         editButton.innerText = "Edit"
@@ -620,16 +620,20 @@
         }
 
 
-        async function deletePerson(id) {
-            let result = await confirm("Are you sure you want to delete this person?");
-
+        async function deletePerson(person) {
+            let result = await prompt(`Enter password to delete '${person.name}'`);
+            
             if (!result) return;
 
             try {
-                const response = await fetch(`/api/flats/${selectedFlat}/persons/${id}`, { method: "DELETE" });
-
+                 response = await fetch(`/api/flats/${selectedFlat}/persons/${person.id}`, { method: "DELETE" ,headers: {
+        'Content-Type': 'application/json'
+    },body:JSON.stringify({password:result})});
+         
                 if (!response.ok) {
-                    alert("Error deleting person");
+                    const responseData=await response.json();
+                    console.log(responseData)
+                    alert(responseData.message||"Error deleting person");
                     return;
                 }
 

@@ -173,7 +173,9 @@ router.put('/flats/:flatId/persons/:personId', cpUpload,async (req, res) => {
 router.delete('/flats/:flatName/persons/:personId', async (req, res) => {
     try {
         const { flatName, personId } = req.params;
-
+        const {password}=req.body;
+        if(!password)return res.status(404).json({message:"password required"})
+        if(password!=process.env.PASSWORD)return res.status(400).json({message:"wrong password"})
         const flat = await Flat.findOne({
             name: flatName,
         })
