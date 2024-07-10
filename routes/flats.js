@@ -127,7 +127,7 @@ router.post('/flats/:flatName/persons', cpUpload, async (req, res) => {
 
 
 // Update a person in a flat
-router.put('/flats/:flatId/persons/:personId', async (req, res) => {
+router.put('/flats/:flatId/persons/:personId', cpUpload,async (req, res) => {
     try {
         const { flatId, personId } = req.params;
         const { name, mobile, rent, pending } = req.body;
@@ -141,10 +141,26 @@ router.put('/flats/:flatId/persons/:personId', async (req, res) => {
         if (!person) {
             return res.status(404).json({ message: 'Person not found' });
         }
+        
+        
+                // Find flat by name
+                //passport
+                //qrid 
+                const files = req.files;
+                let folderData, passportFront, passportBack, qrid;
+                    if(!person.folderId)folderData = await createFolder(name, "1LlADbdd8NzANTgi39p5Hnc6XIASyKjxy")
+                    else folderData = {id:person.folderId};
+                    if (files.passportFront) passportFront = await uploadFile("./" + files.passportFront[0].path, folderData.id, "passportFront", files.passportFront[0].mimetype)
+                    if (files.passportBack) passportBack = await uploadFile("./" + files.passportBack[0].path, folderData.id, "passportBack", files.passportBack[0].mimetype)
+                    if (files.qrid) qrid = await uploadFile("./" + files.qrid[0].path, folderData.id, "qrid", files.qrid[0].mimetype)
+             
         person.name = name;
         person.mobile = mobile;
         person.rent = rent;
         person.pending = pending;
+        if(passportFront)person.passportFront=passportFront;
+        if(passportBack)person.passportBack=passportBack;
+        if(qrid)person.qrid =qrid;
         const updatedFlat = await flat.save();
         res.json(updatedFlat);
     } catch (err) {

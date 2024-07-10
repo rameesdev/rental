@@ -303,7 +303,14 @@
                 <input type="number" id="edit-person-rent-input" step="1" required><br>
                 <label for="edit-person-pending">Pending Amount:</label>
                 <input type="number" id="edit-person-pending-input" step="1" required><br>
-                <button type="button" onclick="editPerson()">Save Changes</button>
+                <label for="passport-front">Passport Front:</label>
+                <input type="file" id="edit-passport-front-input" accept="image/*,.heic"><br>
+                <label for="passport-back">Passport Back:</label>
+                
+               <input type="file" id="edit-passport-back-input" accept="image/*,.heic"><br>
+                <label for="qrid">Qatar ID:</label>
+                <input type="file" id="edit-qrid-input" accept="image/*,.heic"><br>
+                <button type="button" id="submitEditButton" onclick="editPerson()">Save Changes</button>
             </form>
         </div>
     </div>
@@ -994,30 +1001,40 @@
             currentEditPersonIndex = null;
         }
         async function editPerson() {
+            document.getElementById("submitEditButton").disabled= true;
             const name = document.getElementById('edit-person-name-input').value;
             const mobile = document.getElementById('edit-person-mobile-input').value;
             const rent = parseFloat(document.getElementById('edit-person-rent-input').value);
-            const pending = parseFloat(document.getElementById('edit-person-pending-input').value)
-            if (!name || !mobile || !rent || !pending) {
+            const pending = parseFloat(document.getElementById('edit-person-pending-input').value);
+            const passportFront = document.getElementById('edit-passport-front-input').files[0];
+            const passportBack = document.getElementById('edit-passport-back-input').files[0];
+            const qrid = document.getElementById('edit-qrid-input').files[0];
+            if (!name || !mobile || !rent ||document.getElementById('edit-person-pending-input').value=='') {
                 alert("Please fill in all fields.");
+                document.getElementById("submitEditButton").disabled= false;
                 return;
             }
-
-            const person = {
-                id: flats[selectedFlat][currentEditPersonIndex].id,
-                name: name,
-                mobile: mobile,
-                rent: rent,
-                pending // Keep the current pending amount
-            };
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('mobile', mobile);
+            formData.append('rent', parseFloat(rent));
+            formData.append('pending', parseFloat(pending));
+            formData.append('passportFront', passportFront);
+            formData.append('passportBack', passportBack);
+            formData.append('qrid', qrid);
+            formData.append("id",flats[selectedFlat][currentEditPersonIndex].id)
+            // const person = {
+            //     id: flats[selectedFlat][currentEditPersonIndex].id,
+            //     name: name,
+            //     mobile: mobile,
+            //     rent: rent,
+            //     pending // Keep the current pending amount
+            // };
 
             try {
-                const response = await fetch(`/api/flats/${selectedFlat}/persons/${person.id}`, {
+                const response = await fetch(`/api/flats/${selectedFlat}/persons/${flats[selectedFlat][currentEditPersonIndex].id}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(person)
+                    body: formData
                 });
 
                 if (!response.ok) {
@@ -1025,12 +1042,14 @@
                 }
 
                 // Update the person in the local data
-                flats[selectedFlat][currentEditPersonIndex] = person;
+              await fetchFlats();
                 closeEditPersonModal();
                 displayFlatDetails();
+                document.getElementById("submitEditButton").disabled= false;
             } catch (error) {
                 console.error('Error updating person:', error.message);
                 alert('Failed to update person. Please try again.');
+                document.getElementById("submitEditButton").disabled= false;
             }
         }
         async function logout() {
