@@ -243,7 +243,7 @@ router.post('/backup', async (req, res) => {
         // Example: Saving JSON data to MongoDB
         const backup = new Backup({
             date: jsonData.date,
-            data: jsonData.flats,
+            data: jsonData,
             csv: csvContent // Save CSV content as a string if needed
         });
 
