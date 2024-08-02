@@ -338,7 +338,14 @@ router.post("/next-month",async(req,res)=>{
     if(month){return res.status(404).json("month already exist")};
     const flats = await Flat.find();
 
-        // Update pending for each person in each flat
+        
+    const CreatedMonth = new Month({
+        month: newMonth,
+        date: Date.now(),
+        data: [], // Initialize with empty array or desired default value
+      });
+      await CreatedMonth.save();
+      // Update pending for each person in each flat
         const updatedFlats = await Promise.all(flats.map(async flat => {
             // Update pending for each person in the flat
             flat.persons.forEach(person => {
@@ -349,12 +356,7 @@ router.post("/next-month",async(req,res)=>{
             // Save updated flat
             return await flat.save();
         }));
-    const CreatedMonth = new Month({
-        month: newMonth,
-        date: Date.now(),
-        data: updatedFlats, // Initialize with empty array or desired default value
-      });
-      await CreatedMonth.save();
+        
       res.json("success")}catch(err){
 console.log(err.message);
 res.status(500).json("server error")
