@@ -311,9 +311,7 @@ router.post("/login", (req, res) => {
         // Set cookie with JWT token
         res.cookie('token', token, {
             maxAge: 1209600000, // 14 days in milliseconds
-            httpOnly: true,
-            //secure: true, // Set to true if using HTTPS
-            sameSite: 'strict'
+            httpOnly: true
         });
 
         // Send success response
