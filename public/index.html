@@ -331,7 +331,7 @@
     <div id="payment-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closePaymentModal()">&times;</span>
-            <h2>Pay Rent</h2>
+            <h2 id="payment-person-name">Paying: </h2>
             <form id="payment-form">
                 <label for="payment-amount">Amount:</label>
                 <input type="number" id="payment-amount" step="0.01" required><br>
@@ -714,13 +714,27 @@
 
         // Function to open modal for making payment
         function openPaymentModal(personIndex) {
-            currentPersonIndex = personIndex;
-            document.getElementById('payment-modal').style.display = 'block';
-            document.getElementById('payment-method').oninput = (e) => {
-                if (e.target.value == "Bank") { document.getElementById('transaction-details').style.display = 'block'; }
-                if (e.target.value == "Cash") { document.getElementById('transaction-details').style.display = 'none'; }
-            }
+    currentPersonIndex = personIndex;
+
+    // Get the person's name from the data
+    const personName = flats[selectedFlat][currentPersonIndex].name;
+
+    // Display the modal
+    document.getElementById('payment-modal').style.display = 'block';
+
+    // Set the person's name in the modal (assuming you have an element to display the name)
+    document.getElementById('payment-person-name').textContent = `Paying: ${personName}`;
+
+    // Toggle transaction details based on payment method
+    document.getElementById('payment-method').oninput = (e) => {
+        if (e.target.value === "Bank") {
+            document.getElementById('transaction-details').style.display = 'block';
+        } else if (e.target.value === "Cash") {
+            document.getElementById('transaction-details').style.display = 'none';
         }
+    };
+}
+
 
         // Function to close the modal for adding person
         function closeModal() {
