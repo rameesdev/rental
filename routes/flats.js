@@ -45,8 +45,9 @@ router.get('/flats', async (req, res) => {
           return res.json({ flats, username: req.session.username });
         }
         flats =  await Flat.find();
-        let months = await Month.find().sort({date:-1});
+        let months = await Month.find().sort({date:-1}); 
         months = months.map(value=>value.month);
+       
         return res.json({ flats, username: req.session.username ,months});
         
 
@@ -55,6 +56,22 @@ router.get('/flats', async (req, res) => {
         console.log(err.message)
 
     }})
+    router.get('/month-statitics', async (req, res) => {
+        try {
+            
+            flats =  await Flat.find();
+            let months = await Month.find().sort({date:-1}); console.log(JSON.stringify(months[0].data))
+            data = months
+            months = months.map(value=>value.month);
+           
+            return res.json({ data });
+            
+    
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+            console.log(err.message)
+    
+        }})
 
 // Route to add a person to a flat [x]
 const cpUpload = upload.fields([{ name: 'passportFront', maxCount: 1 }, { name: 'passportBack', maxCount: 1 }, { name: 'qrid', maxCount: 1 }])

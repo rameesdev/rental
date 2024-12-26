@@ -212,6 +212,7 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin-left: 20px;
         }
 
         .logout-button:hover {
@@ -223,6 +224,7 @@
 
 <body>
     <div class="header">
+        <button class="logout-button" onclick="statistics()">Statistics</button>
         <button class="logout-button" onclick="logout()">Logout</button>
     </div>
     <div class="container">
@@ -349,6 +351,7 @@
 
     <!-- JavaScript -->
     <script>
+        const statistics = ()=>document.location = "/statitics"
         let months;
         let selectedMonth;
         let CurrentMonth;
@@ -806,11 +809,12 @@
             <strong>Amount:</strong> ${payment.amount.toFixed(2)}<br>
             <strong>Method:</strong> ${payment.method}
             <br><strong>By:</strong> ${payment.by}
-            <br><br>`;
+            `;
 
                 if (payment.method === 'Bank' && payment.transactionId) {
-                    paymentDetails += `<br><strong>Transaction ID:</strong> ${payment.transactionId}`;
+                    paymentDetails += `<br><strong>Transaction ID:</strong> ${payment.transactionId}<br><br>`;
                 }
+                else paymentDetails+="<br><br>"
 
                 listItem.innerHTML = paymentDetails;
                 historyList.appendChild(listItem);
