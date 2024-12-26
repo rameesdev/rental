@@ -80,7 +80,8 @@
     fullData = res.data;
     data = res.data[0].data;
      currentMonth = fullData[0].month.split("/")[0];
-    currentYear = monthNames[(fullData[0].month.split("/")[0])-1];
+    currentYear = fullData[0].month.split("/")[1]
+    currentYearN=fullData[0].month.split("/")[1]
     
     ;render();
          fullData.map((val,index)=>{
@@ -91,90 +92,105 @@
             selectMonthButton.appendChild(option);
          })
       
-    })
-    document.getElementById("monthSelect").onchange = (e)=>{
-        
-        var currentMonth = fullData[e.target.value].month.split("/")[0];
-        var currentYear = fullData[e.target.value].month.split("/")[0];
-        data = fullData[e.target.value].data;
-        render();
-    }
-  
-        // Add month name to the heading
-       
-        
-      
-        let chart;
-   
-        // Prepare data
-       var render = ()=> {document.getElementById('pageHeading').textContent = 
-            `Rental Management Statistics - ${currentMonth} ${currentYear}`;
-            const paymentHistory = [];
-        let totalReceived = 0;
-        let totalPending = 0;
-        const byCounts = { B: 0, S: 0, M: 0 };
+    });
+    let chart;
+    document.getElementById("monthSelect").onchange = (e) => {
+    // Update global variables for currentMonth and currentYear
+    currentMonth = fullData[e.target.value].month.split("/")[0];
+    currentYear =fullData[e.target.value].month.split("/")[1]
+    currentYearN = fullData[e.target.value].month.split("/")[1];
+    data = fullData[e.target.value].data;
 
-        data.forEach(flat => {
-            flat.persons.forEach(person => {
-                totalPending += person.pending;
-                person.history.forEach(history => {
-                    history.name = person.name
-                    history.flat = flat.name
+    render();
+};
+
+let render = () => {
+    document.getElementById('pageHeading').textContent = 
+        `Rental Management Statistics - ${monthNames[currentMonth - 1]} ${currentYear}`;
+    
+    const paymentHistory = [];
+    let totalReceived = 0;
+    let totalPending = 0;
+    const byCounts = { B: 0, S: 0, M: 0 };
+
+    data.forEach(flat => {
+        flat.persons.forEach(person => {
+            totalPending += person.pending;
+            person.history.forEach(history => {
+                const historyDate = new Date(history.date);
+                const historyMonth = historyDate.getMonth() + 1;
+                const historyYear = historyDate.getFullYear();
+                const monthYear = `${historyMonth}/${historyYear}`;
+
+                const currentMonthPadded = currentMonth.toString().padStart(2, '0');
+                const currentMonthYear = `${currentMonthPadded}/${currentYearN}`;
+                
+                if (monthYear === currentMonthYear) {
+                    history.name = person.name;
+                    history.flat = flat.name;
                     paymentHistory.push(history);
                     totalReceived += history.amount;
-                    if (byCounts[history.by] !== undefined) byCounts[history.by] += history.amount;
-                });
-            });
-        });
 
-        // Populate summary
-        const summaryList = document.getElementById('summaryList');
-        summaryList.innerHTML = `
-            <li>Total Pending Amount: ₹${totalPending}</li>
-            <li>Total Received Amount: ₹${totalReceived}</li>
-            <li>Amount Received by B: ₹${byCounts.B}</li>
-            <li>Amount Received by S: ₹${byCounts.S}</li>
-            <li>Amount Received by M: ₹${byCounts.M}</li>
-        `;
-
-        // Populate table
-        const tableBody = document.querySelector('#historyTable tbody');
-        tableBody.innerHTML = "";
-        paymentHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
-        paymentHistory.forEach(({ name,flat,date, amount, method, by, transactionId }) => {
-            const row = `
-                <tr><td>${name}</td><td>${flat}</td>
-                    <td>${new Date(date).toLocaleString()}</td>
-                    <td>₹${amount}</td>
-                    <td>${method}</td>
-                    <td>${by}</td>
-                    <td>${transactionId || 'N/A'}</td>
-                </tr>
-            `;
-            tableBody.innerHTML += row;
-        });
-
-        // Render chart
-        if(chart)chart.destroy()
-        const ctx = document.getElementById('paymentChart').getContext('2d');
-        chart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['B', 'S', 'M'],
-                datasets: [{
-                    data: [byCounts.B, byCounts.S, byCounts.M],
-                    backgroundColor: ['#ff6384', '#36a2eb', '#ffce56']
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
+                    if (byCounts[history.by] !== undefined) {
+                        byCounts[history.by] += history.amount;
                     }
                 }
+            });
+        });
+    });
+
+    // Populate summary
+    const summaryList = document.getElementById('summaryList');
+    summaryList.innerHTML = `
+        <li>Total Pending Amount: ${totalPending}</li>
+        <li>Total Received Amount: ${totalReceived}</li>
+        <li>Amount Received by B: ${byCounts.B}</li>
+        <li>Amount Received by S: ${byCounts.S}</li>
+        <li>Amount Received by M: ${byCounts.M}</li>
+    `;
+
+    // Populate table
+    const tableBody = document.querySelector('#historyTable tbody');
+    tableBody.innerHTML = "";
+    paymentHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+    paymentHistory.forEach(({ name, flat, date, amount, method, by, transactionId }) => {
+        const row = `
+            <tr>
+                <td>${name}</td>
+                <td>${flat}</td>
+                <td>${new Date(date).toLocaleString()}</td>
+                <td>${amount}</td>
+                <td>${method}</td>
+                <td>${by}</td>
+                <td>${transactionId || 'N/A'}</td>
+            </tr>
+        `;
+        tableBody.innerHTML += row;
+    });
+
+    // Render chart
+    if (chart) chart.destroy();
+    const ctx = document.getElementById('paymentChart').getContext('2d');
+    chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['B', 'S', 'M'],
+            datasets: [{
+                data: [byCounts.B, byCounts.S, byCounts.M],
+                backgroundColor: ['#ff6384', '#36a2eb', '#ffce56']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
             }
-        });}
+        }
+    });
+};
+
     </script>
 </body>
 </html>
