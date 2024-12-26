@@ -34,7 +34,7 @@
     </style>
 </head>
 <body>
-    <h1 id="pageHeading">Rental Management Statistics</h1>
+    <h1 id="pageHeading">BSM Business Statistics</h1>
     <label for="monthSelect">Select Month:</label>
     <select id="monthSelect"></select>
 
@@ -106,7 +106,7 @@
 
 let render = () => {
     document.getElementById('pageHeading').textContent = 
-        `Rental Management Statistics - ${monthNames[currentMonth - 1]} ${currentYear}`;
+        `BSM Business Statistics Statistics - ${monthNames[currentMonth - 1]} ${currentYear}`;
     
     const paymentHistory = [];
     let totalReceived = 0;
