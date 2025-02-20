@@ -6,9 +6,9 @@
     <title>Rental Management Statistics</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-         tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -42,24 +42,22 @@
     <select id="monthSelect"></select>
 
     <div class="stats-container">
-        <!-- Circular Statistics -->
         <div class="chart-container">
             <canvas id="paymentChart"></canvas>
         </div>
 
-        <!-- Summary Section -->
         <div class="summary">
             <h2>Summary</h2>
             <ul id="summaryList"></ul>
         </div>
     </div>
 
-    <!-- Payment History Table -->
     <div class="table-container">
         <h2>Payment History</h2>
         <table id="historyTable">
             <thead>
-                <tr><th>Name</th>
+                <tr>
+                    <th>Name</th>
                     <th>Flat</th>
                     <th>Date</th>
                     <th>Amount</th>
@@ -72,128 +70,146 @@
         </table>
     </div>
 
-    <script>  
-    var fullData,currentMonth,currentYear,data;
-     const monthNames = [
-            "January", "February", "March", "April", "May", "June", 
+    <script>
+        var fullData, currentMonth, currentYear, data;
+        const monthNames = [
+            "January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December"
         ];
         
-   fetch("/api/month-statitics").then(res=>res.json()).then(res=>{
-    fullData = res.data;
-    data = res.data[0].data;
-     currentMonth = fullData[0].month.split("/")[0];
-    currentYear = fullData[0].month.split("/")[1]
-    currentYearN=fullData[0].month.split("/")[1]
-    
-    ;render();
-         fullData.map((val,index)=>{
-              selectMonthButton = document.getElementById("monthSelect")
-        const option = document.createElement('option');
-            option.value = index;
-            option.textContent = val.month;
-            selectMonthButton.appendChild(option);
-         })
-      
-    });
-    let chart;
-    document.getElementById("monthSelect").onchange = (e) => {
-    // Update global variables for currentMonth and currentYear
-    currentMonth = fullData[e.target.value].month.split("/")[0];
-    currentYear =fullData[e.target.value].month.split("/")[1]
-    currentYearN = fullData[e.target.value].month.split("/")[1];
-    data = fullData[e.target.value].data;
+        fetch("/api/month-statitics")
+            .then(res => res.json())
+            .then(res => {
+                fullData = res.data.sort((a, b) => {
+                    let [aMonth, aYear] = a.month.split("/").map(Number);
+                    let [bMonth, bYear] = b.month.split("/").map(Number);
+                    return bYear - aYear || bMonth - aMonth;
+                });
 
-    render();
-};
+                console.log("Fetched Data:", fullData); // Debugging log
 
-let render = () => {
-    document.getElementById('pageHeading').textContent = 
-        `BSM Business Statistics Statistics - ${monthNames[currentMonth - 1]} ${currentYear}`;
-    
-    const paymentHistory = [];
-    let totalReceived = 0;
-    let totalPending = 0;
-    const byCounts = { B: 0, S: 0, M: 0 };
+                if (fullData.length > 0) {
+                    data = fullData[0].data;
+                    let [latestMonth, latestYear] = fullData[0].month.split("/");
+                    currentMonth = Number(latestMonth);
+                    currentYear = latestYear;
+                    currentYearN = latestYear;
+                    render();
+                }
 
-    data.forEach(flat => {
-        flat.persons.forEach(person => {
-            totalPending += person.pending;
-            person.history.forEach(history => {
-                const historyDate = new Date(history.date);
-                const historyMonth = historyDate.getMonth() + 1;
-                const historyYear = historyDate.getFullYear();
-                const monthYear = `${historyMonth}/${historyYear}`;
+                const selectMonthButton = document.getElementById("monthSelect");
+                fullData.forEach((val, index) => {
+                    const option = document.createElement("option");
+                    option.value = index;
+                    option.textContent = val.month;
+                    selectMonthButton.appendChild(option);
+                });
 
-                const currentMonthPadded = currentMonth.toString().padStart(2, '0');
-                const currentMonthYear = `${currentMonthPadded}/${currentYearN}`;
-                
-                if (monthYear === currentMonthYear) {
-                    history.name = person.name;
-                    history.flat = flat.name;
-                    paymentHistory.push(history);
-                    totalReceived += history.amount;
+                selectMonthButton.value = 0;
+            });
 
-                    if (byCounts[history.by] !== undefined) {
-                        byCounts[history.by] += history.amount;
+        let chart;
+        document.getElementById("monthSelect").onchange = (e) => {
+            let selectedData = fullData[e.target.value];
+            if (!selectedData) return;
+
+            let [selectedMonth, selectedYear] = selectedData.month.split("/");
+            currentMonth = Number(selectedMonth);
+            currentYear = selectedYear;
+            currentYearN = selectedYear;
+            data = selectedData.data;
+
+            console.log(`Selected Month: ${currentMonth}, Year: ${currentYear}`); // Debugging log
+            render();
+        };
+
+        let render = () => {
+            document.getElementById('pageHeading').textContent = 
+                `BSM Business Statistics - ${monthNames[currentMonth - 1]} ${currentYear}`;
+            
+            const paymentHistory = [];
+            let totalReceived = 0;
+            let totalPending = 0;
+            const byCounts = { B: 0, S: 0, M: 0 };
+
+            data.forEach(flat => {
+                flat.persons.forEach(person => {
+                    totalPending += person.pending;
+                    person.history.forEach(history => {
+                        const historyDate = new Date(history.date);
+                        const historyMonth = (historyDate.getMonth() + 1).toString().padStart(2, "0");
+                        const historyYear = historyDate.getFullYear().toString();
+
+                        const currentMonthPadded = currentMonth.toString().padStart(2, "0");
+                        const currentMonthYear = `${currentMonthPadded}/${currentYearN}`;
+
+                        console.log(`Checking: ${historyMonth}/${historyYear} against ${currentMonthYear}`); // Debugging log
+
+                        if (`${historyMonth}/${historyYear}` === currentMonthYear) {
+                            history.name = person.name;
+                            history.flat = flat.name;
+                            paymentHistory.push(history);
+                            totalReceived += history.amount;
+
+                            if (byCounts[history.by] !== undefined) {
+                                byCounts[history.by] += history.amount;
+                            }
+                        }
+                    });
+                });
+            });
+
+            // Populate summary
+            const summaryList = document.getElementById('summaryList');
+            summaryList.innerHTML = `
+                <li>Total Pending Amount: ${totalPending}</li>
+                <li>Total Received Amount: ${totalReceived}</li>
+                <li>Amount Received by B: ${byCounts.B}</li>
+                <li>Amount Received by S: ${byCounts.S}</li>
+                <li>Amount Received by M: ${byCounts.M}</li>
+            `;
+
+            // Populate table
+            const tableBody = document.querySelector('#historyTable tbody');
+            tableBody.innerHTML = "";
+            paymentHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+            paymentHistory.forEach(({ name, flat, date, amount, method, by, transactionId }) => {
+                const row = `
+                    <tr>
+                        <td>${name}</td>
+                        <td>${flat}</td>
+                        <td>${new Date(date).toLocaleString()}</td>
+                        <td>${amount}</td>
+                        <td>${method}</td>
+                        <td>${by}</td>
+                        <td>${transactionId || 'N/A'}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+            // Render chart
+            if (chart) chart.destroy();
+            const ctx = document.getElementById('paymentChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['B', 'S', 'M'],
+                    datasets: [{
+                        data: [byCounts.B, byCounts.S, byCounts.M],
+                        backgroundColor: ['#ff6384', '#36a2eb', '#ffce56']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
                     }
                 }
             });
-        });
-    });
-
-    // Populate summary
-    const summaryList = document.getElementById('summaryList');
-    summaryList.innerHTML = `
-        <li>Total Pending Amount: ${totalPending}</li>
-        <li>Total Received Amount: ${totalReceived}</li>
-        <li>Amount Received by B: ${byCounts.B}</li>
-        <li>Amount Received by S: ${byCounts.S}</li>
-        <li>Amount Received by M: ${byCounts.M}</li>
-    `;
-
-    // Populate table
-    const tableBody = document.querySelector('#historyTable tbody');
-    tableBody.innerHTML = "";
-    paymentHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-    paymentHistory.forEach(({ name, flat, date, amount, method, by, transactionId }) => {
-        const row = `
-            <tr>
-                <td>${name}</td>
-                <td>${flat}</td>
-                <td>${new Date(date).toLocaleString()}</td>
-                <td>${amount}</td>
-                <td>${method}</td>
-                <td>${by}</td>
-                <td>${transactionId || 'N/A'}</td>
-            </tr>
-        `;
-        tableBody.innerHTML += row;
-    });
-
-    // Render chart
-    if (chart) chart.destroy();
-    const ctx = document.getElementById('paymentChart').getContext('2d');
-    chart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['B', 'S', 'M'],
-            datasets: [{
-                data: [byCounts.B, byCounts.S, byCounts.M],
-                backgroundColor: ['#ff6384', '#36a2eb', '#ffce56']
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-};
-
+        };
     </script>
 </body>
 </html>
