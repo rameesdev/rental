@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flat Management System</title>
+    <style>
+        :root {
+            --primary: #1a1a1a;
+            --secondary: #2d2d2d;
+            --accent: #f5f5f5;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #6a6a6a;
+            --border: #333333;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --surface: #1e1e1e;
+            --elevated: #252525;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 2rem 0;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 0 2rem 2rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .logo-subtitle {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0 1rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--elevated);
+            color: var(--text-primary);
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            width: 20px;
+            height: 20px;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .header {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .header-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .header-subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .toolbar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            background: var(--elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--secondary);
+            border-color: var(--text-muted);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--text-primary);
+            color: var(--primary);
+            border-color: var(--text-primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--text-secondary);
+        }
+
+        .btn-success {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: white;
+        }
+
+        .select, .input {
+            padding: 0.75rem 1rem;
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            min-width: 200px;
+        }
+
+        .select:focus, .input:focus {
+            outline: none;
+            border-color: var(--text-secondary);
+            background: var(--secondary);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+
+        .flat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .flat-card:hover {
+            border-color: var(--text-muted);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .flat-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flat-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .tenant-count {
+            background: var(--elevated);
+            color: var(--text-secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .flat-body {
+            padding: 1.5rem;
+        }
+
+        .add-tenant-btn {
+            width: 100%;
+            margin-bottom: 1.5rem;
+            justify-content: center;
+        }
+
+        .tenant-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .tenant-item {
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .tenant-item:hover {
+            border-color: var(--text-muted);
+        }
+
+        .tenant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .tenant-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .tenant-mobile {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .tenant-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .pending-positive {
+            color: var(--success);
+        }
+
+        .pending-negative {
+            color: var(--danger);
+        }
+
+        .tenant-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 2rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--text-secondary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            opacity: 0.5;
+        }
+
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 2000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">Flat Manager</div>
+                <div class="logo-subtitle">Property Management</div>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-page="dashboard">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="flats">
+                        <span class="nav-icon">🏠</span>
+                        Flats
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="reports">
+                        <span class="nav-icon">📈</span>
+                        Reports
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="logout()">
+                        <span class="nav-icon">🚪</span>
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="header">
+                <h1 class="header-title">Dashboard</h1>
+                <p class="header-subtitle">Manage your properties and tenants efficiently</p>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalFlats">0</div>
+                        <div class="stat-label">Total Flats</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalTenants">0</div>
+                        <div class="stat-label">Total Tenants</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalPending">₹0</div>
+                        <div class="stat-label">Pending Amount</div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="toolbar">
+                <button class="btn btn-primary" onclick="showModal('addFlatModal')">
+                    <span>➕</span> Add Flat
+                </button>
+                <button class="btn btn-success" onclick="newMonth()">
+                    <span>📅</span> New Month
+                </button>
+                <select class="select" id="monthFilter" onchange="filterByMonth()">
+                    <option value="">All Months</option>
+                </select>
+                <button class="btn" onclick="generateReport()">
+                    <span>📊</span> Export Report
+                </button>
+            </div>
+
+            <div id="flatsContainer" class="content-grid">
+                <!-- Content will be loaded here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Flat Modal -->
+    <div id="addFlatModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Flat</h2>
+            </div>
+            <form id="addFlatForm">
+                <div class="form-group">
+                    <label class="form-label" for="flatName">Flat Name</label>
+                    <input type="text" id="flatName" class="form-input" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn" onclick="hideModal('addFlatModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Flat</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Tenant Modal -->
+    <div id="addTenantModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Tenant</h2>
+            </div>
+            <form id="addTenantForm">
+                <div class="form-group">
+                    <label class="form-label" for="tenantName">Name</label>
+                    <input type="text" id="tenantName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="tenantMobile">Mobile</label>
+                    <input type="tel" id="tenantMobile" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="tenantRent">Monthly Rent</label>
+                    <input type="number" id="tenantRent" class="form-input" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn" onclick="hideModal('addTenantModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Tenant</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Record Payment</h2>
+            </div>
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label class="form-label" for="paymentAmount">Amount</label>
+                    <input type="number" id="paymentAmount" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="paymentMethod">Payment Method</label>
+                    <select id="paymentMethod" class="form-input" required>
+                        <option value="">Select Method</option>
+                        <option value="cash">Cash</option>
+                        <option value="upi">UPI</option>
+                        <option value="bank">Bank Transfer</option>
+                        <option value="card">Card</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="transactionId">Transaction ID (Optional)</label>
+                    <input type="text" id="transactionId" class="form-input">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn" onclick="hideModal('paymentModal')">Cancel</button>
+                    <button type="submit" class="btn btn-success">Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentFlat = '';
+        let currentTenant = '';
+        let flatsData = [];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFlats();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Form submissions
+            document.getElementById('addFlatForm').addEventListener('submit', handleAddFlat);
+            document.getElementById('addTenantForm').addEventListener('submit', handleAddTenant);
+            document.getElementById('paymentForm').addEventListener('submit', handlePayment);
+
+            // Close modals on backdrop click
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        hideModal(modal.id);
+                    }
+                });
+            });
+        }
+
+        async function loadFlats() {
+            try {
+                showLoading();
+                const response = await fetch('/api/flats');
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load flats');
+                }
+                
+                const data = await response.json();
+                flatsData = data.flats || [];
+                
+                if (data.months) {
+                    populateMonthFilter(data.months);
+                }
+                
+                renderFlats(flatsData);
+                updateStats();
+                hideLoading();
+            } catch (error) {
+                console.error('Error loading flats:', error);
+                showToast('Failed to load flats', 'error');
+                hideLoading();
+            }
+        }
+
+        function renderFlats(flats) {
+            const container = document.getElementById('flatsContainer');
+            
+            if (!flats || flats.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🏠</div>
+                        <h3>No flats found</h3>
+                        <p>Add your first flat to get started</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = flats.map(flat => `
+                <div class="flat-card">
+                    <div class="flat-header">
+                        <div class="flat-name">${flat.name}</div>
+                        <div class="tenant-count">${flat.persons?.length || 0} tenants</div>
+                    </div>
+                    <div class="flat-body">
+                        <button class="btn add-tenant-btn" onclick="showAddTenantModal('${flat.name}')">
+                            <span>👤</span> Add Tenant
+                        </button>
+                        <div class="tenant-list">
+                            ${(flat.persons || []).map(person => `
+                                <div class="tenant-item">
+                                    <div class="tenant-header">
+                                        <div>
+                                            <div class="tenant-name">${person.name}</div>
+                                            <div class="tenant-mobile">${person.mobile}</div>
+                                        </div>
+                                    </div>
+                                    <div class="tenant-info">
+                                        <div class="info-item">
+                                            <div class="info-label">Monthly Rent</div>
+                                            <div class="info-value">₹${person.rent?.toLocaleString() || 0}</div>
+                                        </div>
+                                        <div class="info-item">
+                                            <div class="info-label">Pending</div>
+                                            <div class="info-value ${person.pending > 0 ? 'pending-negative' : person.pending < 0 ? 'pending-positive' : ''}">
+                                                ₹${person.pending?.toLocaleString() || 0}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tenant-actions">
+                                        <button class="btn btn-success btn-sm" onclick="showPaymentModal('${flat.name}', '${person.id}')">
+                                            💰 Payment
+                                        </button>
+                                        <button class="btn btn-sm" onclick="editTenant('${flat.name}', '${person.id}')">
+                                            ✏️ Edit
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            const totalFlats = flatsData.length;
+            const totalTenants = flatsData.reduce((sum, flat) => sum + (flat.persons?.length || 0), 0);
+            const totalPending = flatsData.reduce((sum, flat) => 
+                sum + (flat.persons?.reduce((pSum, person) => pSum + (person.pending || 0), 0) || 0), 0
+            );
+
+            document.getElementById('totalFlats').textContent = totalFlats;
+            document.getElementById('totalTenants').textContent = totalTenants;
+            document.getElementById('totalPending').textContent = `₹${totalPending.toLocaleString()}`;
+        }
+
+        function populateMonthFilter(months) {
+            const select = document.getElementById('monthFilter');
+            select.innerHTML = '<option value="">All Months</option>';
+            months.forEach(month => {
+                const option = document.createElement('option');
+                option.value = month;
+                option.textContent = month;
+                select.appendChild(option);
+            });
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            // Reset forms
+            const form = document.querySelector(`#${modalId} form`);
+            if (form) form.reset();
+        }
+
+        function showAddTenantModal(flatName) {
+            currentFlat = flatName;
+            showModal('addTenantModal');
+        }
+
+        function showPaymentModal(flatName, tenantId) {
+            currentFlat = flatName;
+            currentTenant = tenantId;
+            showModal('paymentModal');
+        }
+
+        async function handleAddFlat(e) {
+            e.preventDefault();
+            const name = document.getElementById('flatName').value.trim();
+            
+            if (!name) {
+                showToast('Please enter a flat name', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/flats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    hideModal('addFlatModal');
+                    loadFlats();
+                    showToast('Flat added successfully!', 'success');
+                } else {
+                    showToast(result.message || 'Failed to add flat', 'error');
+                }
+            } catch (error) {
+                showToast('Network error occurred', 'error');
+            }
+        }
+
+        async function handleAddTenant(e) {
+            e.preventDefault();
+            const name = document.getElementById('tenantName').value.trim();
+            const mobile = document.getElementById('tenantMobile').value.trim();
+            const rent = parseFloat(document.getElementById('tenantRent').value);
+            
+            if (!name || !mobile || !rent) {
+                showToast('Please fill all fields', 'error');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('mobile', mobile);
+                formData.append('rent', rent);
+
+                const response = await fetch(`/api/flats/${currentFlat}/persons`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    hideModal('addTenantModal');
+                    loadFlats();
+                    showToast('Tenant added successfully!', 'success');
+                } else {
+                    const error = await response.json();
+                    showToast(error.message || 'Failed to add tenant', 'error');
+                }
+            } catch (error) {
+                showToast('Network error occurred', 'error');
+            }
+        }
+
+        async function handlePayment(e) {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const method = document.getElementById('paymentMethod').value;
+            const transactionId = document.getElementById('transactionId').value.trim();
+            
+            if (!amount || !method) {
+                showToast('Please fill required fields', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/flats/${currentFlat}/persons/${currentTenant}/payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount, method, transactionId })
+                });
+                
+                if (response.ok) {
+                    hideModal('paymentModal');
+                    loadFlats();
+                    showToast('Payment recorded successfully!', 'success');
+                } else {
+                    const error = await response.json();
+                    showToast(error.message || 'Failed to record payment', 'error');
+                }
+            } catch (error) {
+                showToast('Network error occurred', 'error');
+            }
+        }
+
+        async function newMonth() {
+            if (!confirm('Are you sure you want to start a new month? This will add rent to all pending amounts.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/new-month', { method: 'PUT' });
+                if (response.ok) {
+                    loadFlats();
+                    showToast('New month started successfully!', 'success');
+                } else {
+                    showToast('Failed to start new month', 'error');
+                }
+            } catch (error) {
+                showToast('Network error occurred', 'error');
+            }
+        }
+
+        async function filterByMonth() {
+            const month = document.getElementById('monthFilter').value;
+            const url = month ? `/api/flats?month=${month}` : '/api/flats';
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                flatsData = data.flats || [];
+                renderFlats(flatsData);
+                updateStats();
+            } catch (error) {
+                showToast('Failed to filter by month', 'error');
+            }
+        }
+
+                function generateReport() {
+            const csvContent = generateCSV();
+            downloadCSV(csvContent, `flats_report_${new Date().toLocaleDateString('en-GB').replace(/\//g, '-')}.csv`);
+        }
+
+        function generateCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Flat,Name,Mobile,Rent,Pending,Month\n";
+            
+            flatsData.forEach(flat => {
+                if (flat.persons && flat.persons.length > 0) {
+                    flat.persons.forEach(person => {
+                        csvContent += `${flat.name},${person.name},${person.mobile || ''},${person.rent || 0},${person.pending || 0},${document.getElementById('monthFilter').value || 'Current'}\n`;
+                    });
+                } else {
+                    csvContent += `${flat.name},,,,,\n`;
+                }
+            });
+
+            return encodeURI(csvContent);
+        }
+
+        function downloadCSV(csvContent, fileName) {
+            const link = document.createElement("a");
+            link.setAttribute("href", csvContent);
+            link.setAttribute("download", fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function showAddTenantModal(flatName) {
+            currentFlat = flatName;
+            showModal('addTenantModal');
+        }
+
+        function showPaymentModal(flatName, tenantId) {
+            currentFlat = flatName;
+            currentTenant = tenantId;
+            showModal('paymentModal');
+        }
+
+        function editTenant(flatName, tenantId) {
+            currentFlat = flatName;
+            currentTenant = tenantId;
+            const flat = flatsData.find(f => f.name === flatName);
+            const tenant = flat.persons.find(p => p.id === tenantId);
+            
+            if (tenant) {
+                document.getElementById('tenantName').value = tenant.name;
+                document.getElementById('tenantMobile').value = tenant.mobile || '';
+                document.getElementById('tenantRent').value = tenant.rent || 0;
+                showModal('addTenantModal');
+            }
+        }
+
+        function showLoading() {
+            // Create a loading overlay if not exists
+            let loader = document.getElementById('loadingOverlay');
+            if (!loader) {
+                loader = document.createElement('div');
+                loader.id = 'loadingOverlay';
+                loader.style.position = 'fixed';
+                loader.style.top = '0';
+                loader.style.left = '0';
+                loader.style.width = '100%';
+                loader.style.height = '100%';
+                loader.style.background = 'rgba(0, 0, 0, 0.5)';
+                loader.style.display = 'flex';
+                loader.style.alignItems = 'center';
+                loader.style.justifyContent = 'center';
+                loader.style.zIndex = '3000';
+                loader.innerHTML = '<div style="color: white; font-size: 1.5rem;">Loading...</div>';
+                document.body.appendChild(loader);
+            }
+            loader.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            const loader = document.getElementById('loadingOverlay');
+            if (loader) {
+                loader.style.display = 'none';
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        async function logout() {
+            try {
+                const response = await fetch('/api/logout', { method: 'POST' });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    showToast('Failed to logout', 'error');
+                }
+            } catch (error) {
+                showToast('Network error during logout', 'error');
+            }
+        }
+
+        // Sidebar toggle for mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Handle navigation between pages
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = this.getAttribute('data-page');
+                if (page) {
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    loadPage(page);
+                }
+            });
+        });
+
+        async function loadPage(page) {
+            const headerTitle = document.querySelector('.header-title');
+            const headerSubtitle = document.querySelector('.header-subtitle');
+            const flatsContainer = document.getElementById('flatsContainer');
+            
+            switch(page) {
+                case 'dashboard':
+                    headerTitle.textContent = 'Dashboard';
+                    headerSubtitle.textContent = 'Manage your properties and tenants efficiently';
+                    flatsContainer.style.display = 'grid';
+                    loadFlats();
+                    break;
+                case 'flats':
+                    headerTitle.textContent = 'Flats';
+                    headerSubtitle.textContent = 'View and manage all flats';
+                    flatsContainer.style.display = 'grid';
+                    loadFlats();
+                    break;
+                case 'reports':
+                    headerTitle.textContent = 'Reports';
+                    headerSubtitle.textContent = 'Generate and view financial reports';
+                    flatsContainer.style.display = 'none';
+                    flatsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📈</div>
+                            <h3>Reports</h3>
+                            <p>Generate a report using the toolbar above</p>
+                        </div>
+                    `;
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>

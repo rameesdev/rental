@@ -60,7 +60,7 @@ router.get('/flats', async (req, res) => {
         try {
             
             flats =  await Flat.find();
-            let months = await Month.find().sort({date:-1}); console.log(JSON.stringify(months[0].data))
+            let months = await Month.find().sort({date:-1}); 
             data = months
             months = months.map(value=>value.month);
            
@@ -252,6 +252,58 @@ router.post('/flats/:flatName/persons/:personId/payment', async (req, res) => {
     } catch (err) {
         res.status(500).json({ message: err.message });
         console.log(err.message);
+    }
+});
+router.delete('/flats/:flatName/persons/:personId/payment/:paymentId', async (req, res) => {
+    try {
+        const { flatName, personId, paymentId } = req.params;
+        const { password } = req.body;
+
+        // Verify user is authorized (only user 'B' can delete)
+        if (req.session.username !== 'B') {
+            return res.status(403).json({ message: 'Unauthorized to delete payment' });
+        }
+
+        // Verify password (replace with your actual password validation logic)
+        if (!password || password !== process.env.PASSWORD) { // Example: Use environment variable for password
+            return res.status(400).json({ message: 'Invalid password' });
+        }
+
+        // Find flat by name
+        const flat = await Flat.findOne({ name: flatName });
+        if (!flat) {
+            return res.status(404).json({ message: 'Flat not found' });
+        }
+
+        // Find person by custom ID
+        const person = flat.persons.find(p => p.id === personId);
+        if (!person) {
+            return res.status(404).json({ message: 'Person not found' });
+        }
+
+        // Find payment by paymentId in person's history
+        const paymentIndex = person.history.findIndex(h => h.id === paymentId);
+        if (paymentIndex === -1) {
+            return res.status(404).json({ message: 'Payment not found' });
+        }
+
+        // Get the payment to be deleted
+        const payment = person.history[paymentIndex];
+
+        // Restore the pending amount
+        person.pending += payment.amount;
+
+        // Remove the payment from history
+        person.history.splice(paymentIndex, 1);
+
+        // Save updated flat
+        await flat.save();
+
+        // Respond with success
+        res.status(200).json({ message: 'Payment deleted successfully' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 router.post('/backup', async (req, res) => {
