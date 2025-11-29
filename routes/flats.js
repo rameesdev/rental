@@ -9,6 +9,15 @@ const { createFolder, uploadFile, getFile } = require("../utils/googleDrive.js")
 const multer = require('multer');
 const upload = multer({ dest: './uploads/' });
 require("dotenv").config();
+const nodemailer = require('nodemailer');
+const mailTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_EMAIL,
+    pass: process.env.GMAIL_PASSWORD
+  }
+});
+
 // Create a new flat [x]
 router.post('/flats', async (req, res) => {
     try {
@@ -307,25 +316,57 @@ router.delete('/flats/:flatName/persons/:personId/payment/:paymentId', async (re
     }
 });
 router.post('/backup', async (req, res) => {
-    try {
-        const { jsonData, csvContent } = req.body;
+  try {
+    const { jsonData, csvContent } = req.body;
 
-        // Save CSV content and JSON data to MongoDB or handle as needed
-        // Example: Saving JSON data to MongoDB
-        const backup = new Backup({
-            date: jsonData.date,
-            data: jsonData,
-            csv: csvContent // Save CSV content as a string if needed
+    // Save backup as you already do
+    const backup = new Backup({
+      date: jsonData.date,
+      data: jsonData,
+      csv: csvContent
+    });
+    await backup.save();
+
+    // Prepare receivers
+    const receivers = (process.env.MANAGERS || "")
+      .split(",")
+      .map(v => v.trim())
+      .filter(Boolean);
+
+    // Async email send (won’t block or crash)
+    (async () => {
+      try {
+        if (!receivers.length) {
+          console.log("⚠️ No MANAGERS emails set in .env — skipping email");
+          return;
+        }
+
+        await mailTransporter.sendMail({
+          from: process.env.GMAIL_USER,
+          to: receivers.join(","),
+          subject: "BSM Monthly Backup CSV",
+          text: "Attached is the backup CSV for this month.",
+          attachments: [
+            {
+              filename: `backup.csv`,
+              content: Buffer.from(csvContent, "utf8"),
+              contentType: "text/csv"
+            }
+          ]
         });
 
-        await backup.save();
+        console.log("📨 Backup CSV emailed to:", receivers.join(","));
+      } catch (err) {
+        console.log("⚠️ Email send failed (ignored):", err.message);
+      }
+    })();
 
-        res.status(200).json({ message: 'Backup saved successfully.' });
+    res.status(200).json({ message: "Backup saved successfully." });
 
-    } catch (error) {
-        console.error('Error saving backup:', error);
-        res.status(500).json({ error: 'Failed to save backup.' });
-    }
+  } catch (error) {
+    console.error("Error saving backup:", error.message);
+    res.status(500).json({ error: "Failed to save backup." });
+  }
 });
 router.put('/new-month', async (req, res) => {
     try {

@@ -221,8 +221,10 @@
 
 <body>
     <div class="header">
-        <button class="logout-button" onclick="statistics()">Statistics</button>
-        <button class="logout-button" onclick="logout()">Logout</button>
+       <button class="logout-button" onclick="statistics()">Statistics</button>
+<button class="logout-button" onclick="mailBackup()">Mail Backup</button>
+<button class="logout-button" onclick="logout()">Logout</button>
+
     </div>
     <div class="container">
         <h1>BSM Business</h1>
@@ -964,6 +966,42 @@
                 document.getElementById("submitEditButton").disabled = false;
             }
         }
+
+async function mailBackup() {
+    const ok = confirm("Send current backup to managers?");
+    if (!ok) return;
+
+    try {
+        let csvContent = "Flat,Name,Mobile,Rent,Pending\n";
+
+        Object.keys(flats).forEach(flatName => {
+            flats[flatName].forEach(person => {
+                csvContent += `${flatName},${person.name},${person.mobile},${person.rent},${person.pending.toFixed(2)}\n`;
+            });
+        });
+
+        const jsonData = {
+            date: new Date(),
+            flats
+        };
+
+        const response = await fetch('/api/backup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonData, csvContent })
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to send backup email");
+        }
+
+        alert("Backup emailed successfully!");
+    } catch (err) {
+        console.error(err);
+        alert("Failed to send backup mail.");
+    }
+}
+
 
         async function logout() {
             await fetch("/api/logout").then(() => { location.reload() });
