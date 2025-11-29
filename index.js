@@ -55,8 +55,11 @@ async function checkAndCreateMonth() {
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open',async () => {console.log('Connected to MongoDB');await checkAndCreateMonth()});
-app.use(cookieParser())
-app.use(express.json()); // Middleware to parse JSON bodies
+app.use(cookieParser());
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
 app.get("/favicon.ico",(req,res)=>res.sendFile(__dirname+"/bsm.PNG"))
 app.use((req, res, next) => {
     
