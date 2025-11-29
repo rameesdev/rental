@@ -371,20 +371,32 @@ router.post("/next-month",async(req,res)=>{
             // Save updated flat
             return await flat.save();
         }));
-        
+        console.log("okay");
       res.json("success")}catch(err){
-console.log(err.message);
+console.log("error creating new month:_____"+err.message);
 res.status(500).json("server error")
       }
 
 })
 const changeStream = Flat.watch();
-
 changeStream.on("change", async (change) => {
-    const month = await Month.findOne({}).sort({ date: -1 });
-    month.data = await Flat.find();
-    await month.save();
-    console.log("month saved" + month.month)
+    try {
+        const month = await Month.findOne({}).sort({ date: -1 });
+        
+
+        month.data = await Flat.find();
+        await month.save(); // <-- this is where VersionError was blowing up
+
+        console.log("month saved " + month.month);
+
+    } catch (err) {
+        if (err.name === "VersionError") {
+            console.log("⚠️ VersionError while saving month (ignored):", err.message);
+        } else {
+            console.log("⚠️ changeStream error:", err.message);
+        }
+        // Do not throw — silently absorb so server doesn't die
+    }
 });
 
 module.exports = router;
