@@ -1038,7 +1038,7 @@
             </div>
             <div class="modal-footer-btns">
                 <button class="btn btn-ghost" onclick="closePaymentModal()">Cancel</button>
-                <button type="button" class="btn btn-success" onclick="makePayment()">&#10003; Pay Rent</button>
+                <button type="button" id="submit-payment-btn" class="btn btn-success" onclick="makePayment()">&#10003; Pay Rent</button>
             </div>
         </div>
     </div>
@@ -1086,7 +1086,7 @@
             document.getElementById('sc-tenants').textContent = persons.length;
             document.getElementById('sc-rent').textContent    = totalRent.toLocaleString();
             const pendingEl = document.getElementById('sc-pending');
-            pendingEl.textContent = Math.abs(totalPending).toFixed(2);
+            pendingEl.textContent = totalPending.toFixed(2);
             pendingEl.style.color = totalPending > 0 ? 'var(--danger)' : 'var(--success)';
             document.getElementById('statsStrip').style.display = 'flex';
         }
@@ -1173,7 +1173,9 @@
                 const responseData = await response.json();
                 const fetchedFlats = responseData.flats;
                 user    = responseData.username;
-                months  = await responseData.months;
+                if (responseData.months) {
+                    months  = responseData.months;
+                }
                 if (!month) currentMonth = months[0];
                 flats = {};
                 fetchedFlats.forEach(flat => { flats[flat.name] = flat.persons; });
@@ -1197,7 +1199,7 @@
         /* ---- Update New Month Button State ---- */
         function updateNewMonthButtonState() {
             const btn = document.getElementById("newMonth");
-            if (liveMonth() == selectedMonth) {
+            if (months && months.includes(liveMonth())) {
                 btn.disabled = true;
                 btn.title = "Current month is already active";
                 btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Up to Date`;
@@ -1273,7 +1275,7 @@
                 const pendingVal = person.pending.toFixed(2);
                 const badgeCls = person.pending > 0 ? 'pending-positive' : person.pending < 0 ? 'pending-negative' : 'pending-zero';
                 const icon = person.pending > 0 ? '⚠️' : person.pending < 0 ? '✓' : '✓';
-                pendingCell.innerHTML = `<span class="pending-badge ${badgeCls}">${icon} ${Math.abs(person.pending).toFixed(2)}</span>`;
+                pendingCell.innerHTML = `<span class="pending-badge ${badgeCls}">${icon} ${person.pending.toFixed(2)}</span>`;
 
                 // Actions cell
                 const actionsCell = row.insertCell(4);
@@ -1473,6 +1475,12 @@
             document.getElementById('payment-modal').style.display = 'none';
             document.getElementById('payment-form').reset();
             currentPersonIndex = null;
+            
+            const submitBtn = document.getElementById('submit-payment-btn');
+            if(submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "&#10003; Pay Rent";
+            }
         }
 
         /* ---- Make Payment ---- */
@@ -1491,6 +1499,11 @@
                 const confirmed = confirm("Warning: The payment amount is greater than the pending amount. This will result in a negative pending balance. Are you sure?");
                 if (!confirmed) return;
             }
+            
+            const submitBtn = document.getElementById('submit-payment-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = "Processing...";
+            
             const payment = { amount, method, transactionId };
             try {
                 const response = await fetch(`/api/flats/${selectedFlat}/persons/${person.id}/payment`, {
@@ -1507,6 +1520,8 @@
             } catch (error) {
                 console.error('Error making payment:', error.message);
                 alert('Failed to make payment. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "&#10003; Pay Rent";
             }
         }
 
