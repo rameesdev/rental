@@ -11,6 +11,8 @@ const { Flat } = require('./models/Flat');
 
 require("dotenv").config()
 const MONGODB_URI = process.env.URI;
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 mongoose.connect(MONGODB_URI, {});
 const uploadsPath = path.join(__dirname, 'uploads');
 
@@ -88,7 +90,8 @@ app.use((req, res, next) => {
 });
 // Use your defined routes
 app.use('/api', require('./routes/flats')); // Adjust path as per your project structure
-app.get("",(req,res)=>{console.log(req.session.username);res.sendFile(__dirname+"/public/index.html")})
+app.get("",(req,res)=>{console.log(req.session.username);res.sendFile(__dirname+"/public/new.html")})
+app.get("/new",(req,res)=>{res.sendFile(__dirname+"/public/new.html")})
 app.get("/statitics",(req,res)=>{console.log(req.session.username);res.sendFile(__dirname+"/public/statitics.html")})
 app.get("/status",(req,res)=>{
     console.log("works");
